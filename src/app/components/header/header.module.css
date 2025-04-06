@@ -1,0 +1,56 @@
+/* Header Styles */
+.header {
+    background-color: #1f2937; /* Dark Gray */
+    padding: 1rem 0;
+    color: white;
+  }
+  
+  /* Container to Align Content */
+  .container {
+    max-width: 80rem; /* Tailwind's max-w-7xl */
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1rem;
+  }
+  
+  /* Logo */
+  .logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+  }
+  
+  /* Navigation */
+  .nav {
+    display: flex;
+    gap: 1.5rem;
+  }
+  
+  .navLink {
+    text-decoration: none;
+    color: white;
+    font-size: 1rem;
+    transition: color 0.3s ease-in-out;
+  }
+  
+  .navLink:hover {
+    color: #facc15; /* Yellow-400 */
+  }
+  
+  /* Login Button */
+  .loginButton {
+    background-color: #facc15;
+    color: black;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s ease-in-out;
+  }
+  
+  .loginButton:hover {
+    background-color: #eab308; /* Darker Yellow */
+  }
+  
