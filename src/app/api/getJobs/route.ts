@@ -5,9 +5,16 @@ import {
   ScanCommand,
 } from '@aws-sdk/lib-dynamodb';
 
-const REGION = process.env.AWS_REGION;
+const REGION = process.env.REGION;
 
-const client = new DynamoDBClient({ region: REGION });
+const client = new DynamoDBClient({
+    region: REGION,
+    credentials: {
+      accessKeyId: process.env.ACCESS_KEY_ID ?? '',
+      secretAccessKey: process.env.SECRET_ACCESS_KEY ?? '',
+    },
+  });
+
 const ddb = DynamoDBDocumentClient.from(client);
 
 export async function POST(req: NextRequest) {
@@ -59,8 +66,14 @@ export async function POST(req: NextRequest) {
       jobs: sortedItems,
       lastEvaluatedKey: result.LastEvaluatedKey || null,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('DynamoDB error:', error);
+  
+    if (error instanceof Error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+  
     return NextResponse.json({ error: 'Failed to fetch jobs' }, { status: 500 });
   }
+  
 }

@@ -4,10 +4,10 @@ import { DynamoDBClient, PutItemCommand } from '@aws-sdk/client-dynamodb';
 import { v4 as uuidv4 } from 'uuid';
 
 const client = new DynamoDBClient({
-  region: process.env.AWS_REGION,
+  region: process.env.REGION,
   credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+    accessKeyId: process.env.ACCESS_KEY_ID!,
+    secretAccessKey: process.env.SECRET_ACCESS_KEY!,
   },
 });
 
@@ -45,8 +45,14 @@ export async function POST(req: NextRequest) {
     await client.send(command);
 
     return NextResponse.json({ message: 'Data saved successfully', id }, { status: 200 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('DynamoDB error:', error);
+  
+    if (error instanceof Error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+  
     return NextResponse.json({ error: 'Failed to save data' }, { status: 500 });
   }
+  
 }

@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useEffect, useState } from 'react';
 
 interface Job {
@@ -13,10 +14,15 @@ interface Job {
   createdAt: string;
 }
 
+interface LastEvaluatedKey {
+    id: string;
+    createdAt: string;
+}
+
 export default function ViewJobs() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [page, setPage] = useState(1);
-  const [lastEvaluatedKey, setLastEvaluatedKey] = useState<any>(null);
+  const [lastEvaluatedKey, setLastEvaluatedKey] = useState<LastEvaluatedKey | null>(null);;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [previewJob, setPreviewJob] = useState<Job | null>(null);
@@ -39,11 +45,18 @@ export default function ViewJobs() {
 
       setJobs(data.jobs);
       setLastEvaluatedKey(data.lastEvaluatedKey || null);
-    } catch (err: any) {
-      console.error('Fetch error:', err);
-      setError(err.message || 'Something went wrong');
-      setJobs([]); // Avoid undefined map error
-    } finally {
+    } catch (err: unknown) {
+        console.error('Fetch error:', err);
+      
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError('Something went wrong');
+        }
+      
+        setJobs([]); // Avoid undefined map error
+      }
+    finally {
       setLoading(false);
     }
   };
@@ -120,7 +133,7 @@ export default function ViewJobs() {
             <h2 className="text-lg font-bold mb-2">Image Preview</h2>
             <div className="overflow-x-scroll flex space-x-4 mb-4">
               {previewJob.imageUrls.map((url, index) => (
-                <img
+                <Image
                   key={index}
                   src={url}
                   alt={`Preview ${index}`}
