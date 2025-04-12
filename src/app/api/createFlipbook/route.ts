@@ -21,8 +21,6 @@ export async function POST(req: NextRequest) {
     const frontCoverImgmetadata = await sharp(frontCoverImgbuffer).metadata();
     const aspectRatio = frontCoverImgmetadata.width && frontCoverImgmetadata.height ? frontCoverImgmetadata.width / frontCoverImgmetadata.height: 1;
 
-    const orientation = aspectRatio>1 ? "landscape"  : "portrait";
-
     const firstPageImg = await fetch(sortedImageUrls[1]);
     const firstPageImgarrayBuffer = await firstPageImg.arrayBuffer();
     const firstPageImgbuffer = Buffer.from(firstPageImgarrayBuffer);
@@ -46,7 +44,7 @@ export async function POST(req: NextRequest) {
     }
     else{
         isCropped = true;
-        let numPages = (sortedImageUrls.length-1)%2===0 ? ((sortedImageUrls.length-1)/2) : sortedImageUrls.length/2
+        const numPages = (sortedImageUrls.length-1)%2===0 ? ((sortedImageUrls.length-1)/2) : sortedImageUrls.length/2
         flipbookHtml = generateFlipbook(sortedImageUrls.slice(1), numPages, sortedImageUrls[0], sortedImageUrls[sortedImageUrls.length - 1], aspectRatio, isCropped);
     }
 

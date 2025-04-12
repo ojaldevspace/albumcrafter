@@ -1,5 +1,5 @@
 'use client';
-import { Fragment, useState } from 'react';
+import { useState } from 'react';
 import imageCompression from 'browser-image-compression';
 import loadingAnim from '../../../public/UploadingAnimation.json';
 import successUpload from '../../../public/SuccessfullyCompleted.json'
@@ -19,18 +19,18 @@ export default function CreateAlbum() {
     const [dealerName, setDealerName] = useState('');
     const [dealerMobileNumber, setDealerMobileNumber] = useState('');
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-    const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
+    const [, setUploadedFiles] = useState<string[]>([]);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [isUploading, setIsUploading] = useState(false);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
-    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (event.target.files) {
-            setSelectedFiles([...selectedFiles, ...Array.from(event.target.files)]);
-        }
-    };
+    // const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    //     if (event.target.files) {
+    //         setSelectedFiles([...selectedFiles, ...Array.from(event.target.files)]);
+    //     }
+    // };
 
     const options = ['Wedding', 'Birthday', 'Engagement', 'Reception', 'df', 'arfd', 'arfe', 'arfds'];
 
