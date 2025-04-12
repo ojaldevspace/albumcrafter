@@ -1,9 +1,11 @@
 // app/api/upload/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import s3 from '@/lib/s3Client';
-import { v4 as uuidv4 } from 'uuid';
+import { PutObjectCommand } from '@aws-sdk/client-s3';
 
 export async function POST(req: NextRequest) {
+  console.log("hitting");
+  debugger;
   const formData = await req.formData();
   const files = formData.getAll('file') as File[];
 
@@ -20,22 +22,26 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "S3 bucket is not configured" }, { status: 500 });
     }
 
+    const jobNumber = formData.get('jobNumber')?.toString() || 'unknown';
+    const uploadDate = formData.get('uploadDate')?.toString() || new Date().toISOString().split('T')[0];
 
-  for (const file of files) {
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const fileKey = `${uuidv4()}-${file.name}`;
 
-    const uploadParams = {
-      Bucket: bucketName,
-      Key: fileKey,
-      Body: buffer,
-      ContentType: file.type,
-    };
-
-    await s3.upload(uploadParams).promise();
-    const fileUrl = `https://${process.env.S3_BUCKET}.s3.${process.env.REGION}.amazonaws.com/${fileKey}`;
-    uploadedFileUrls.push(fileUrl);
-  }
+    for (const file of files) {
+        const buffer = Buffer.from(await file.arrayBuffer());
+        const fileKey = `${uploadDate}/${jobNumber}/images/${file.name}`;
+    
+        const uploadParams = new PutObjectCommand({
+          Bucket: bucketName,
+          Key: fileKey,
+          Body: buffer,
+          ContentType: file.type,
+        });
+    
+        await s3.send(uploadParams);
+    
+        const fileUrl = `https://${process.env.S3_BUCKET}.s3.${process.env.REGION}.amazonaws.com/${fileKey}`;
+        uploadedFileUrls.push(fileUrl);
+      }
 
   return NextResponse.json({ files: uploadedFileUrls });
 }

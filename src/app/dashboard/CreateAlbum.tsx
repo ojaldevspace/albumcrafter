@@ -1,146 +1,207 @@
 'use client';
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import imageCompression from 'browser-image-compression';
+import loadingAnim from '../../../public/UploadingAnimation.json';
+import successUpload from '../../../public/SuccessfullyCompleted.json'
+import CustomDatePicker from './components/DatePicker';
+import InputColumn from './components/InputColumn';
+import ImageUpload from './components/ImageUpload';
+import CustomDialog from './components/Dialogbox';
+import CustomDropdown from './components/CustomDropdown';
+
 
 export default function CreateAlbum() {
-  const [jobNumber, setJobNumber] = useState('');
-  const [jobName, setJobName] = useState('');
-  const [jobType, setJobType] = useState('');
-  const [photographer, setPhotographer] = useState('');
-  const [location, setLocation] = useState('');
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+    const [jobNumber, setJobNumber] = useState('');
+    const [jobName, setJobName] = useState('');
+    const [jobType, setJobType] = useState('');
+    const [photographer, setPhotographer] = useState('');
+    const [location, setLocation] = useState('');
+    const [dealerName, setDealerName] = useState('');
+    const [dealerMobileNumber, setDealerMobileNumber] = useState('');
+    const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+    const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
+    const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
+    const [isUploading, setIsUploading] = useState(false);
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files) {
-      setSelectedFiles([...selectedFiles, ...Array.from(event.target.files)]);
-    }
-  };
-
-  const removeFile = (index: number) => {
-    const updatedFiles = selectedFiles.filter((_, i) => i !== index);
-    setSelectedFiles(updatedFiles);
-  };
-
-  const compressImage = async (file: File) => {
-    const options = {
-      useWebWorker: true,
-      initialQuality: 0.1
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (event.target.files) {
+            setSelectedFiles([...selectedFiles, ...Array.from(event.target.files)]);
+        }
     };
-    return await imageCompression(file, options);
-  };
 
-  const handleUpload = async () => {
-    setError('');
-    setSuccess('');
+    const options = ['Wedding', 'Birthday', 'Engagement', 'Reception', 'df', 'arfd', 'arfe', 'arfds'];
 
-    if (selectedFiles.length === 0) {
-      setError('Please select files to upload');
-      return;
-    }
+    const removeFile = (index: number) => {
+        const updatedFiles = selectedFiles.filter((_, i) => i !== index);
+        setSelectedFiles(updatedFiles);
+    };
 
-    try {
-      const formData = new FormData();
+    const compressImageOld = async (file: File) => {
+        const options = {
+            maxWidthOrHeight: 1200,
+            useWebWorker: true,
+            initialQuality: 0.5
+        };
+        return await imageCompression(file, options);
+    };
 
-      for (const file of selectedFiles) {
-        const compressed = await compressImage(file);
-        formData.append('file', compressed, file.name); // preserve original name
-      }
+    const handleUpload = async () => {
+        setError('');
+        setSuccess('');
+        setIsUploading(true);
 
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
+        setIsDialogOpen(true);
 
-      const result = await response.json();
-      if (!response.ok) {
-        setError(result.error || 'Image upload failed');
-        return;
-      }
+        if (selectedFiles.length === 0) {
+            setError('Please select files to upload');
+            setIsUploading(false);
+            setIsDialogOpen(false);
+            return;
+        }
 
-      const imageUrls = result.files;
-      setUploadedFiles(imageUrls);
-      setSelectedFiles([]);
+        try {
+            const formData = new FormData();
 
-      // Save metadata + image URLs to DynamoDB
-      const metadataResponse = await fetch('/api/createAlbum', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          jobNumber,
-          jobName,
-          jobType,
-          photographer,
-          location,
-          imageUrls,
-        }),
-      });
+            for (const file of selectedFiles) {
+                const compressed = await compressImageOld(file);
+                formData.append('file', compressed, file.name); // preserve original name
+            }
 
-      const metadataResult = await metadataResponse.json();
-      if (metadataResponse.ok) {
-        setSuccess('Album created successfully');
-      } else {
-        setError(metadataResult.error || 'Failed to save album data');
-      }
-    } catch (err) {
-      console.error('Upload error:', err);
-      setError('Something went wrong during upload');
-    }
-  };
+            const createdAt = selectedDate?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0]; // "2025-04-09"
+            formData.append('jobNumber', jobNumber);
+            formData.append('uploadDate', createdAt);
 
-  return (
-    <div className="p-4 border rounded-lg shadow-lg max-w-lg mx-auto">
-      <h2 className="text-xl font-bold mb-4">Create Album</h2>
 
-      <input type="text" placeholder="Job Number" value={jobNumber} onChange={(e) => setJobNumber(e.target.value)} className="mb-2 border p-2 w-full" />
-      <input type="text" placeholder="Job Name" value={jobName} onChange={(e) => setJobName(e.target.value)} className="mb-2 border p-2 w-full" />
+            const response = await fetch('/api/upload', {
+                method: 'POST',
+                body: formData,
+            });
 
-      <select value={jobType} onChange={(e) => setJobType(e.target.value)} className="mb-2 border p-2 w-full">
-        <option value="">Select Job Type</option>
-        <option value="Wedding">Wedding</option>
-        <option value="Portrait">Portrait</option>
-        <option value="Event">Event</option>
-      </select>
+            const result = await response.json();
+            if (!response.ok) {
+                setError(result.error || 'Image upload failed');
+                setIsUploading(false);
+                setIsDialogOpen(false);
+                return;
+            }
 
-      <input type="text" placeholder="Photographer Name" value={photographer} onChange={(e) => setPhotographer(e.target.value)} className="mb-2 border p-2 w-full" />
-      <input type="text" placeholder="Location" value={location} onChange={(e) => setLocation(e.target.value)} className="mb-2 border p-2 w-full" />
+            const imageUrls = result.files;
+            setUploadedFiles(imageUrls);
+            setSelectedFiles([]);
 
-      <input type="file" multiple onChange={handleFileChange} className="mb-2 border p-2 w-full" />
+            // Save metadata + image URLs to DynamoDB
+            const metadataResponse = await fetch('/api/createAlbum', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    jobNumber,
+                    jobName,
+                    jobType,
+                    photographer,
+                    location,
+                    imageUrls,
+                    createdAt,
+                    dealerName,
+                    dealerMobileNumber,
+                }),
+            });
 
-      {selectedFiles.length > 0 && (
-        <ul className="mb-2">
-          {selectedFiles.map((file, index) => (
-            <li key={index} className="text-sm flex justify-between items-center">
-              {file.name}
-              <button onClick={() => removeFile(index)} className="text-red-500 text-sm ml-2">
-                Remove
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
+            const metadataResult = await metadataResponse.json();
+            if (metadataResponse.ok) {
+                setSuccess('Album created successfully');
+            } else {
+                setError(metadataResult.error || 'Failed to save album data');
+            }
+            setJobNumber('');
+            setPhotographer('');
+            setJobName('');
+            setSelectedFiles([]);
+            setJobType('');
+            setLocation('');
+            setDealerName('');
+            setDealerMobileNumber('');
+            setSelectedDate(null)
+        } catch (err) {
+            console.error('Upload error:', err);
+            setError('Something went wrong during upload');
+        } finally {
+            setIsUploading(false);
+        }
+    };
 
-      <button onClick={handleUpload} className="bg-blue-500 text-white px-4 py-2 rounded-md">
-        Upload
-      </button>
+    return (
+        <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow border space-y-6">
+            <h2 className="text-2xl font-semibold">Create Album</h2>
 
-      {uploadedFiles.length > 0 && (
-        <div className="mt-4">
-          <h3 className="text-md font-semibold">Uploaded Files:</h3>
-          <ul>
-            {uploadedFiles.map((file, index) => (
-              <li key={index} className="text-sm">{file}</li>
-            ))}
-          </ul>
+            {/* Job Info */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <InputColumn label='Job Number' value={jobNumber} onChange={setJobNumber} />
+                </div>
+                <div>
+                    <InputColumn label='Job Name' value={jobName} onChange={setJobName} />
+                </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <CustomDropdown label="Job Type" options={options} value={jobType} onChange={setJobType} />
+                </div>
+                <div>
+                    <CustomDatePicker label='Date' selectedDate={selectedDate} onChange={setSelectedDate} />
+                </div>
+            </div>
+
+            {/* Dealer & Agent Information */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <InputColumn label='Dealer & Agent Name' value={dealerName} onChange={setDealerName} />
+                </div>
+
+                <div>
+                    <InputColumn label='Phone Number' value={dealerMobileNumber} onChange={setDealerMobileNumber} />
+                </div>
+            </div>
+            {/* Photographer and Location */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <InputColumn label='Photographer Name' value={photographer} onChange={setPhotographer} />
+                </div>
+
+                <div>
+                    <InputColumn label='Location' value={location} onChange={setLocation} />
+                </div>
+            </div>
+            {/* File Upload */}
+            <div>
+                <ImageUpload
+                    selectedFiles={selectedFiles}
+                    onFilesSelected={setSelectedFiles}
+                    onFileRemove={removeFile}
+                />
+            </div>
+            <div>
+                <button
+                    onClick={handleUpload}
+                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md"
+                    disabled={isUploading}
+                >
+                    Upload
+                </button>
+            </div>
+            <CustomDialog
+                isDialogOpen={isDialogOpen}
+                setIsDialogOpen={setIsDialogOpen}
+                isUploading={isUploading}
+                success={success}
+                error={error}
+                loadingAnim={loadingAnim}
+                successUpload={successUpload}
+            />
         </div>
-      )}
-
-      {error && <p className="text-red-500 mt-2">{error}</p>}
-      {success && <p className="text-green-600 mt-2">{success}</p>}
-    </div>
-  );
+    );
 }

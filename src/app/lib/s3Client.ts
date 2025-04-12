@@ -1,10 +1,12 @@
 // lib/s3Client.ts
-import AWS from 'aws-sdk';
+import { S3Client } from '@aws-sdk/client-s3';
 
-const s3 = new AWS.S3({
-  region: process.env.REGION, // e.g. 'us-east-1'
-  accessKeyId: process.env.ACCESS_KEY_ID,
-  secretAccessKey: process.env.SECRET_ACCESS_KEY,
+const s3Client = new S3Client({
+  region: process.env.REGION,
+  credentials: {
+    accessKeyId: process.env.ACCESS_KEY_ID || '',
+    secretAccessKey: process.env.SECRET_ACCESS_KEY || '',
+  },
 });
 
-export default s3;
+export default s3Client;

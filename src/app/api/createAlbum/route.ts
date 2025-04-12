@@ -12,6 +12,7 @@ const client = new DynamoDBClient({
 });
 
 export async function POST(req: NextRequest) {
+  debugger;
   try {
     const data = await req.json();
 
@@ -22,10 +23,25 @@ export async function POST(req: NextRequest) {
       photographer,
       location,
       imageUrls,
+      createdAt,
+      dealerName,
+      dealerMobileNumber,
     } = data;
 
+    // STEP 1: Generate the flipbook URL
+    const flipbookResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/createFlipbook`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ imageUrls, jobNumber, createdAt }),
+    });
+
+    if (!flipbookResponse.ok) {
+      throw new Error('Failed to create flipbook');
+    }
+
+    const { flipbookUrl } = await flipbookResponse.json();
+
     const id = uuidv4();
-    const createdAt = new Date().toISOString();
 
     const params = {
       TableName: 'JobList',
@@ -38,21 +54,24 @@ export async function POST(req: NextRequest) {
         location: { S: location },
         createdAt: { S: createdAt },
         imageUrls: { L: imageUrls.map((url: string) => ({ S: url })) },
+        flipbookUrl: { S: flipbookUrl },
+        dealerName: { S: dealerName },
+        dealerMobileNumber: { S: dealerMobileNumber },
       },
     };
 
     const command = new PutItemCommand(params);
     await client.send(command);
 
-    return NextResponse.json({ message: 'Data saved successfully', id }, { status: 200 });
+    return NextResponse.json({ message: 'Data saved successfully', id, flipbookUrl }, { status: 200 });
   } catch (error: unknown) {
     console.error('DynamoDB error:', error);
-  
+
     if (error instanceof Error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
-  
+
     return NextResponse.json({ error: 'Failed to save data' }, { status: 500 });
   }
-  
+
 }
