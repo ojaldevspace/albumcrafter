@@ -10,12 +10,12 @@ const REGION = process.env.REGION;
 const client = new DynamoDBClient({
     region: REGION,
     credentials: {
-      accessKeyId: process.env.ACCESS_KEY_ID ?? '',
-      secretAccessKey: process.env.SECRET_ACCESS_KEY ?? '',
+      accessKeyId: 'AKIA5V5LH334PAZSOVN4',
+      secretAccessKey: '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',
     },
   });
 
-  const msg = process.env.ACCESS_KEY_ID +" " + process.env.SECRET_ACCESS_KEY;
+  const msg = process.env.ACCESS_KEY_ID ?? "Ojal" +" " + process.env.SECRET_ACCESS_KEY?? "kumar";
 
 
 
