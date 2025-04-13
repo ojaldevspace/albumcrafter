@@ -25,13 +25,23 @@ export async function POST(req: NextRequest) {
       dealerName,
       dealerMobileNumber,
     } = data;
+    
+    const protocol = req.headers.get('host')?.startsWith('localhost') ? 'http' : 'https';
+    const baseUrl = `${protocol}://${req.headers.get('host')}`;
 
     // STEP 1: Generate the flipbook URL
-    const flipbookResponse = await fetch(`/api/createFlipbook`, {
+    const flipbookResponse = await fetch(`${baseUrl}/api/createFlipbook`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ imageUrls, jobNumber, createdAt }),
     });
+
+    // // STEP 1: Generate the flipbook URL
+    // const flipbookResponse = await fetch(`/api/createFlipbook`, {
+    //   method: 'POST',
+    //   headers: { 'Content-Type': 'application/json' },
+    //   body: JSON.stringify({ imageUrls, jobNumber, createdAt }),
+    // });
 
     if (!flipbookResponse.ok) {
       throw new Error('Failed to create flipbook');

@@ -57,6 +57,6 @@ export async function POST(req: NextRequest) {
         ContentType: 'text/html',
     }));
 
-    const flipbookUrl = `https://${process.env.AWS_S3_BUCKET}.s3.${process.env.NEXT_PUBLIC_REGION}.amazonaws.com/${flipbookKey}`;
+    const flipbookUrl = `https://${process.env.AWS_S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${flipbookKey}`;
     return NextResponse.json({ flipbookUrl });
 }

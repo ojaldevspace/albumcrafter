@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
     
         await s3.send(uploadParams);
     
-        const fileUrl = `https://${process.env.AWS_S3_BUCKET}.s3.${process.env.NEXT_PUBLIC_REGION}.amazonaws.com/${fileKey}`;
+        const fileUrl = `https://${process.env.AWS_S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileKey}`;
         uploadedFileUrls.push(fileUrl);
       }
 
