@@ -12,7 +12,7 @@ const client = new DynamoDBClient({
 
 export async function POST(req: NextRequest) {
   try {
-
+    console.log('begin');
     console.log('Creds:', await client.config.credentials());
     console.log('hello');
     const { startDate, endDate, lastEvaluatedKey, limit = 10 } = await req.json();
