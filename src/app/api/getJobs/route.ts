@@ -14,6 +14,9 @@ export async function POST(req: NextRequest) {
   try {
     console.log('begin');
     console.log('Creds:', await client.config.credentials());
+    console.log('Bucket',process.env.AWS_S3_BUCKET);
+    console.log('AccessKey', process.env.AWS_ACCESS_KEY_ID);
+    console.log('Region', process.env.AWS_REGION);
     console.log('hello');
     const { startDate, endDate, lastEvaluatedKey, limit = 10 } = await req.json();
    
