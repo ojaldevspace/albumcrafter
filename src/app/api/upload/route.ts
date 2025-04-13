@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
 
   const uploadedFileUrls: string[] = [];
 
-  const bucketName = process.env.S3_BUCKET;
+  const bucketName = process.env.NEXT_PUBLIC_S3_BUCKET;
 
     if (!bucketName) {
         console.error("Missing S3_BUCKET env variable");
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
     
         await s3.send(uploadParams);
     
-        const fileUrl = `https://${process.env.S3_BUCKET}.s3.${process.env.REGION}.amazonaws.com/${fileKey}`;
+        const fileUrl = `https://${process.env.NEXT_PUBLIC_S3_BUCKET}.s3.${process.env.NEXT_PUBLIC_REGION}.amazonaws.com/${fileKey}`;
         uploadedFileUrls.push(fileUrl);
       }
 

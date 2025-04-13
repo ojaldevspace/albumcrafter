@@ -4,10 +4,10 @@ import { DynamoDBClient, PutItemCommand } from '@aws-sdk/client-dynamodb';
 import { v4 as uuidv4 } from 'uuid';
 
 const client = new DynamoDBClient({
-  region: process.env.REGION,
+  region: process.env.NEXT_PUBLIC_REGION,
   credentials: {
-    accessKeyId: process.env.ACCESS_KEY_ID!,
-    secretAccessKey: process.env.SECRET_ACCESS_KEY!,
+    accessKeyId: process.env.NEXT_PUBLIC_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.NEXT_PUBLIC_ACCESS_SECRET_KEY!,
   },
 });
 

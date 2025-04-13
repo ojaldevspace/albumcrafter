@@ -5,17 +5,17 @@ import {
   ScanCommand,
 } from '@aws-sdk/lib-dynamodb';
 
-const REGION = process.env.REGION;
+const REGION = process.env.NEXT_PUBLIC_REGION;
 
 const client = new DynamoDBClient({
     region: REGION,
     credentials: {
-      accessKeyId: 'AKIA5V5LH334PAZSOVN4',
-      secretAccessKey: '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',
+      accessKeyId: process.env.NEXT_PUBLIC_ACCESS_KEY_ID ?? '',
+      secretAccessKey: process.env.NEXT_PUBLIC_ACCESS_SECRET_KEY ?? ''
     },
   });
 
-  const msg = process.env.ACCESS_KEY_ID ?? "Ojal" +" " + process.env.SECRET_ACCESS_KEY?? "kumar";
+  const msg = process.env.NEXT_PUBLIC_ACCESS_KEY_ID ?? "Ojal" +" " + process.env.NEXT_PUBLIC_ACCESS_SECRET_KEY?? "kumar";
 
 
 
@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
   try {
     const { startDate, endDate, lastEvaluatedKey, limit = 10 } = await req.json();
    
-    console.log(process.env.ACCESS_KEY_ID +" " + process.env.SECRET_ACCESS_KEY);
+    console.log(process.env.NEXT_PUBLIC_ACCESS_KEY_ID +" " + process.env.NEXT_PUBLIC_ACCESS_SECRET_KEY);
     const ddb = DynamoDBDocumentClient.from(client);
 
     // If filtering by date
