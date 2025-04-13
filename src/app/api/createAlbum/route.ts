@@ -6,8 +6,8 @@ import { v4 as uuidv4 } from 'uuid';
 const client = new DynamoDBClient({
   region: process.env.NEXT_PUBLIC_REGION,
   credentials: {
-    accessKeyId: process.env.NEXT_PUBLIC_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.NEXT_PUBLIC_ACCESS_SECRET_KEY!,
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
   },
 });
 
