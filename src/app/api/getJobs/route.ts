@@ -4,7 +4,6 @@ import {
   DynamoDBDocumentClient,
   ScanCommand,
 } from '@aws-sdk/lib-dynamodb';
-import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 
 const REGION = process.env.NEXT_PUBLIC_REGION;
 
