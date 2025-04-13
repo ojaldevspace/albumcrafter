@@ -4,27 +4,19 @@ import {
   DynamoDBDocumentClient,
   ScanCommand,
 } from '@aws-sdk/lib-dynamodb';
+import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 
 const REGION = process.env.NEXT_PUBLIC_REGION;
 
 const client = new DynamoDBClient({
     region: REGION,
-    credentials: {
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID ?? '',
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ?? ''
-    },
+    credentials: fromNodeProviderChain(),
   });
-
-  const msg = process.env.AWS_ACCESS_KEY_ID ?? "Ojal" +" " + process.env.AWS_SECRET_ACCESS_KEY?? "kumar";
-
-
-
 
 export async function POST(req: NextRequest) {
   try {
     const { startDate, endDate, lastEvaluatedKey, limit = 10 } = await req.json();
    
-    console.log(process.env.AWS_ACCESS_KEY_ID +" " + process.env.AWS_SECRET_ACCESS_KEY);
     const ddb = DynamoDBDocumentClient.from(client);
 
     // If filtering by date
@@ -76,7 +68,7 @@ export async function POST(req: NextRequest) {
     console.error('DynamoDB error:', error);
   
     if (error instanceof Error) {
-      return NextResponse.json({ error: error.message + msg}, { status: 500 });
+      return NextResponse.json({ error: error.message}, { status: 500 });
     }
   
     return NextResponse.json({ error: 'Failed to fetch jobs' }, { status: 500 });

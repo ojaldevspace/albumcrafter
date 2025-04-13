@@ -2,13 +2,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBClient, PutItemCommand } from '@aws-sdk/client-dynamodb';
 import { v4 as uuidv4 } from 'uuid';
+import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 
 const client = new DynamoDBClient({
   region: process.env.NEXT_PUBLIC_REGION,
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-  },
+  credentials: fromNodeProviderChain(),
 });
 
 export async function POST(req: NextRequest) {
