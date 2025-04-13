@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 
 const client = new DynamoDBClient({
-  region: process.env.NEXT_PUBLIC_REGION,
+  region: process.env.AWS_REGION,
   credentials: fromNodeProviderChain(),
 });
 
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
     } = data;
 
     // STEP 1: Generate the flipbook URL
-    const flipbookResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/createFlipbook`, {
+    const flipbookResponse = await fetch(`/api/createFlipbook`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ imageUrls, jobNumber, createdAt }),
