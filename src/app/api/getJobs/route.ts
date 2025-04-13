@@ -7,7 +7,7 @@ import {
 
 
 const client = new DynamoDBClient({
-    region: 'ap-south-1',
+    region: process.env.AWS_REGION,
   });
 
 export async function POST(req: NextRequest) {
