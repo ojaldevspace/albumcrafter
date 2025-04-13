@@ -51,12 +51,12 @@ export async function POST(req: NextRequest) {
     const flipbookKey = `${createdAt}/${jobNumber}/flipbooks/${uuidv4()}.html`;
 
     await s3.send(new PutObjectCommand({
-        Bucket: process.env.NEXT_PUBLIC_S3_BUCKET,
+        Bucket: process.env.NEXT_PUBLIC_S3_BUCKET?? 'albumcrafter1',
         Key: flipbookKey,
         Body: flipbookHtml,
         ContentType: 'text/html',
     }));
 
-    const flipbookUrl = `https://${process.env.NEXT_PUBLIC_S3_BUCKET}.s3.${process.env.NEXT_PUBLIC_REGION}.amazonaws.com/${flipbookKey}`;
+    const flipbookUrl = `https://${process.env.NEXT_PUBLIC_S3_BUCKET ?? 'albumcrafter1'}.s3.${process.env.NEXT_PUBLIC_REGION}.amazonaws.com/${flipbookKey}`;
     return NextResponse.json({ flipbookUrl });
 }
