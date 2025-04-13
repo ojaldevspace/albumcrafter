@@ -5,9 +5,16 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { supabase } from "@/api/utils/supabaseClient"; // Ensure this is correctly imported
 import Header from "../components/header/header";
-import ViewJobs from "@/view-jobs/page";
-import CreateAlbum from "./CreateAlbum";
+//import ViewJobs from "@/view-jobs/page";
+// import CreateAlbum from "./CreateAlbum";
 import { User } from "@supabase/supabase-js";
+import dynamic from "next/dynamic";
+
+
+
+const CreateAlbum = dynamic(() => import("./CreateAlbum"), { ssr: false });
+const ViewJobs = dynamic(() => import("@/view-jobs/page"), { ssr: false });
+
 
 export default function Dashboard() {
   const router = useRouter();
