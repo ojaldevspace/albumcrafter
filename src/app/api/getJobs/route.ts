@@ -4,19 +4,17 @@ import {
   DynamoDBDocumentClient,
   ScanCommand,
 } from '@aws-sdk/lib-dynamodb';
-import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 
-const REGION = process.env.NEXT_PUBLIC_REGION;
 
 const client = new DynamoDBClient({
-    region: REGION,
-    credentials: fromNodeProviderChain(),
+    region: 'ap-south-1',
   });
-
-console.log('Creds:', await client.config.credentials());
 
 export async function POST(req: NextRequest) {
   try {
+
+    console.log('Creds:', await client.config.credentials());
+    console.log('hello');
     const { startDate, endDate, lastEvaluatedKey, limit = 10 } = await req.json();
    
     const ddb = DynamoDBDocumentClient.from(client);
