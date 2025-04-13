@@ -10,7 +10,6 @@ const REGION = process.env.NEXT_PUBLIC_REGION;
 
 const client = new DynamoDBClient({
     region: REGION,
-    credentials: fromNodeProviderChain(),
   });
 
 export async function POST(req: NextRequest) {
@@ -59,6 +58,7 @@ export async function POST(req: NextRequest) {
     const sortedItems = (result.Items || []).sort((a, b) =>
       new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
+    console.log('Creds:', await client.config.credentials());
 
     return NextResponse.json({
       jobs: sortedItems,
