@@ -4,7 +4,7 @@ import s3 from '@/lib/s3Client';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 
 export async function POST(req: NextRequest) {
-  console.log("hitting " +process.env.NEXT_PUBLIC_S3_BUCKET);
+  console.log("hitting " +process.env.AWS_S3_BUCKET);
   debugger;
   const formData = await req.formData();
   const files = formData.getAll('file') as File[];
@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
 
   const uploadedFileUrls: string[] = [];
 
-  const bucketName = process.env.NEXT_PUBLIC_S3_BUCKET ?? 'albumcrafter1';
+  const bucketName = process.env.AWS_S3_BUCKET;
 
     if (!bucketName) {
         console.error("Missing S3_BUCKET env variable");
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
     
         await s3.send(uploadParams);
     
-        const fileUrl = `https://${process.env.NEXT_PUBLIC_S3_BUCKET ?? 'albumcrafter1'}.s3.${process.env.NEXT_PUBLIC_REGION}.amazonaws.com/${fileKey}`;
+        const fileUrl = `https://${process.env.AWS_S3_BUCKET}.s3.${process.env.NEXT_PUBLIC_REGION}.amazonaws.com/${fileKey}`;
         uploadedFileUrls.push(fileUrl);
       }
 

@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
 
     try {
         const command = new GetObjectCommand({
-            Bucket: process.env.NEXT_PUBLIC_S3_BUCKET ?? 'albumcrafter1',
+            Bucket: process.env.AWS_S3_BUCKET ?? 'albumcrafter1',
             Key: key,
         });
 
