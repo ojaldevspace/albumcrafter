@@ -4,7 +4,7 @@ import s3 from '@/lib/s3Client';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 
 export async function POST(req: NextRequest) {
-  console.log("hitting");
+  console.log("hitting " +process.env.NEXT_PUBLIC_S3_BUCKET);
   debugger;
   const formData = await req.formData();
   const files = formData.getAll('file') as File[];
