@@ -15,12 +15,16 @@ const client = new DynamoDBClient({
     },
   });
 
+  const msg = process.env.ACCESS_KEY_ID +" " + process.env.SECRET_ACCESS_KEY;
+
+console.log(process.env.ACCESS_KEY_ID +" " + process.env.SECRET_ACCESS_KEY);
 const ddb = DynamoDBDocumentClient.from(client);
 
 export async function POST(req: NextRequest) {
   try {
     const { startDate, endDate, lastEvaluatedKey, limit = 10 } = await req.json();
 
+   
     // If filtering by date
     if (startDate && endDate) {
       const startTimestamp = new Date(startDate).toISOString();
@@ -70,7 +74,7 @@ export async function POST(req: NextRequest) {
     console.error('DynamoDB error:', error);
   
     if (error instanceof Error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: error.message + msg}, { status: 500 });
     }
   
     return NextResponse.json({ error: 'Failed to fetch jobs' }, { status: 500 });

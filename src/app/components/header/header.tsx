@@ -13,7 +13,6 @@ export default function Header() {
   useEffect(() => {
     const getUser = async () => {
       const { data: { session }, error } = await supabase.auth.getSession();
-      console.log("Session Data:", session); // Debugging
       if (error) {
         console.error("Error fetching session:", error);
       }
