@@ -1,11 +1,9 @@
 // app/api/upload/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import s3 from '@/lib/s3Client';
+import s3 from '@/app/lib/s3Client';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 
 export async function POST(req: NextRequest) {
-  console.log("hitting " +process.env.AWS_S3_BUCKET);
-  debugger;
   const formData = await req.formData();
   const files = formData.getAll('file') as File[];
 

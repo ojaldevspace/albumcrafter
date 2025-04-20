@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
-import s3 from '@/lib/s3Client';
+import s3 from '@/app/lib/s3Client';
 import { v4 as uuidv4 } from 'uuid';
-import generateFlipbook from '@/lib/generateFlipbook';
+import generateFlipbook from '@/app/lib/generateFlipbook';
 import sharp from 'sharp';
 
 export async function POST(req: NextRequest) {
@@ -57,6 +57,5 @@ export async function POST(req: NextRequest) {
         ContentType: 'text/html',
     }));
 
-    const flipbookUrl = `https://${process.env.AWS_S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${flipbookKey}`;
-    return NextResponse.json({ flipbookUrl });
+    return NextResponse.json({ flipbookKey });
 }

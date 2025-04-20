@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
       throw new Error('Failed to create flipbook');
     }
 
-    const { flipbookUrl } = await flipbookResponse.json();
+    const { flipbookKey } = await flipbookResponse.json();
 
     const id = uuidv4();
 
@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
         location: { S: location },
         createdAt: { S: createdAt },
         imageUrls: { L: imageUrls.map((url: string) => ({ S: url })) },
-        flipbookUrl: { S: flipbookUrl },
+        flipbookUrl: { S: flipbookKey },
         dealerName: { S: dealerName },
         dealerMobileNumber: { S: dealerMobileNumber },
       },
@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
     const command = new PutItemCommand(params);
     await client.send(command);
 
-    return NextResponse.json({ message: 'Data saved successfully', id, flipbookUrl }, { status: 200 });
+    return NextResponse.json({ message: 'Data saved successfully', id, flipbookKey }, { status: 200 });
   } catch (error: unknown) {
     console.error('DynamoDB error:', error);
 

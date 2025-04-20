@@ -1,31 +1,45 @@
 'use client';
 import { useState } from 'react';
 import loadingAnim from '../../../public/UploadingAnimation.json';
-import successUpload from '../../../public/SuccessfullyCompleted.json'
+import successUpload from '../../../public/SuccessfullyCompleted.json';
 import CustomDatePicker from './components/DatePicker';
 import InputColumn from './components/InputColumn';
 import ImageUpload from './components/ImageUpload';
 import CustomDialog from './components/Dialogbox';
 import CustomDropdown from './components/CustomDropdown';
+import { AlbumFormData } from '@/types/AlbumFormData';
+import { uploadAlbum } from './utils/uploadHelper';
+import { JobType } from '@/types/JobTypeOption';
 
+const initialFormState: AlbumFormData = {
+    jobNumber: '',
+    jobName: '',
+    jobType: '',
+    photographer: '',
+    location: '',
+    dealerName: '',
+    dealerMobileNumber: '',
+    eventDate: null,
+    selectedFiles: [],
+};
 
 export default function CreateAlbum() {
-    const [jobNumber, setJobNumber] = useState('');
-    const [jobName, setJobName] = useState('');
-    const [jobType, setJobType] = useState('');
-    const [photographer, setPhotographer] = useState('');
-    const [location, setLocation] = useState('');
-    const [dealerName, setDealerName] = useState('');
-    const [dealerMobileNumber, setDealerMobileNumber] = useState('');
+    const [formData, setFormData] = useState<AlbumFormData>(initialFormState);
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-    const [, setUploadedFiles] = useState<string[]>([]);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [isUploading, setIsUploading] = useState(false);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+    const [fieldErrors, setFieldErrors] = useState<Record<string, boolean>>({});
 
-    const options = ['Wedding', 'Birthday', 'Engagement', 'Reception', 'df', 'arfd', 'arfe', 'arfds'];
+    const jobTypes = Object.values(JobType);
+
+    const handleChange = (key: keyof AlbumFormData, value: string | File[] | Date | null) => {
+        setFormData(prev => ({
+            ...prev,
+            [key]: value,
+        }));
+    };
 
     const removeFile = (index: number) => {
         const updatedFiles = selectedFiles.filter((_, i) => i !== index);
@@ -36,83 +50,67 @@ export default function CreateAlbum() {
         setSelectedFiles(files);
     };
 
+    const validateForm = () => {
+        const requiredFields: (keyof AlbumFormData)[] = [
+            'jobNumber',
+            'jobName',
+            'jobType',
+            'photographer',
+            'location',
+            'dealerName',
+            'dealerMobileNumber',
+            'eventDate',
+        ];
+
+        const newErrors: Record<string, boolean> = {};
+        let hasError = false;
+
+        requiredFields.forEach(field => {
+            const value = formData[field];
+            if (value === '' || value === null || (Array.isArray(value) && value.length === 0)) {
+                newErrors[field] = true;
+                hasError = true;
+            } else {
+                newErrors[field] = false;
+            }
+        });
+
+        if (selectedFiles.length === 0) {
+            setError('Please select at least one image to upload');
+            setIsDialogOpen(false);
+            setIsUploading(false);
+            return 'Missing images';
+        }
+
+        setFieldErrors(newErrors);
+        return hasError ? 'Please fill all required fields' : null;
+    };
+
+
     const handleUpload = async () => {
         setError('');
         setSuccess('');
         setIsUploading(true);
-
         setIsDialogOpen(true);
 
-        if (selectedFiles.length === 0) {
-            setError('Please select files to upload');
+
+        const validationError = validateForm();
+        if (validationError) {
+            setError(validationError);
             setIsUploading(false);
             setIsDialogOpen(false);
             return;
         }
 
         try {
-            const formData = new FormData();
-
-            for (const file of selectedFiles) {
-                formData.append('file', file, file.name); // preserve original name
-            }
-
-            const createdAt = selectedDate?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0]; // "2025-04-09"
-            formData.append('jobNumber', jobNumber);
-            formData.append('uploadDate', createdAt);
-
-
-            const response = await fetch('/api/upload', {
-                method: 'POST',
-                body: formData,
-            });
-
-            const result = await response.json();
-            if (!response.ok) {
-                setError(result.error || 'Image upload failed');
-                setIsUploading(false);
-                setIsDialogOpen(false);
-                return;
-            }
-
-            const imageUrls = result.files;
-            setUploadedFiles(imageUrls);
-            setSelectedFiles([]);
-
-            // Save metadata + image URLs to DynamoDB
-            const metadataResponse = await fetch('/api/createAlbum', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    jobNumber,
-                    jobName,
-                    jobType,
-                    photographer,
-                    location,
-                    imageUrls,
-                    createdAt,
-                    dealerName,
-                    dealerMobileNumber,
-                }),
-            });
-
-            const metadataResult = await metadataResponse.json();
-            if (metadataResponse.ok) {
+            const result = await uploadAlbum(formData, selectedFiles);
+            if (result.success) {
                 setSuccess('Album created successfully');
+                setFormData(initialFormState);
+                setSelectedFiles([]);
             } else {
-                setError(metadataResult.error || 'Failed to save album data');
+                setError(result.error || "Failed to create flipbook");
             }
-            setJobNumber('');
-            setPhotographer('');
-            setJobName('');
-            setSelectedFiles([]);
-            setJobType('');
-            setLocation('');
-            setDealerName('');
-            setDealerMobileNumber('');
-            setSelectedDate(null)
         } catch (err) {
             console.error('Upload error:', err);
             setError('Something went wrong during upload');
@@ -125,49 +123,42 @@ export default function CreateAlbum() {
         <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow border space-y-6">
             <h2 className="text-2xl font-semibold">Create Album</h2>
 
-            {/* Job Info */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <InputColumn label='Job Number' value={jobNumber} onChange={setJobNumber} />
+                    <InputColumn label='Job Number' value={formData.jobNumber} onChange={val => handleChange('jobNumber', val)} isError={fieldErrors.jobNumber} />
                 </div>
                 <div>
-                    <InputColumn label='Job Name' value={jobName} onChange={setJobName} />
+                    <InputColumn label='Job Name' value={formData.jobName} onChange={val => handleChange('jobName', val)} isError={fieldErrors.jobName} />
                 </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <CustomDropdown label="Job Type" options={options} value={jobType} onChange={setJobType} />
+                    <CustomDropdown label="Job Type" options={jobTypes} value={formData.jobType} onChange={val => handleChange('jobType', val)} isError={fieldErrors.jobType} />
                 </div>
                 <div>
-                    <CustomDatePicker label='Date' selectedDate={selectedDate} onChange={setSelectedDate} />
+                    <CustomDatePicker label='Date' selectedDate={formData.eventDate} onChange={val => handleChange('eventDate', val)} isError={fieldErrors.eventDate} />
                 </div>
             </div>
-
-            {/* Dealer & Agent Information */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <InputColumn label='Dealer & Agent Name' value={dealerName} onChange={setDealerName} />
+                    <InputColumn label='Dealer & Agent Name' value={formData.dealerName} onChange={val => handleChange('dealerName', val)} isError={fieldErrors.dealerName} />
                 </div>
-
                 <div>
-                    <InputColumn label='Phone Number' value={dealerMobileNumber} onChange={setDealerMobileNumber} />
+                    <InputColumn label='Phone Number' value={formData.dealerMobileNumber} onChange={val => handleChange('dealerMobileNumber', val)} isError={fieldErrors.dealerMobileNumber} />
                 </div>
             </div>
-            {/* Photographer and Location */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <InputColumn label='Photographer Name' value={photographer} onChange={setPhotographer} />
+                    <InputColumn label='Photographer Name' value={formData.photographer} onChange={val => handleChange('photographer', val)} isError={fieldErrors.photographer} />
                 </div>
-
                 <div>
-                    <InputColumn label='Location' value={location} onChange={setLocation} />
+                    <InputColumn label='Location' value={formData.location} onChange={val => handleChange('location', val)} isError={fieldErrors.location} />
                 </div>
             </div>
-            {/* File Upload */}
             <div>
                 <ImageUpload
                     selectedFiles={selectedFiles}
-                    onFilesSelected={handleFilesSelected} // updated to handle compression early
+                    onFilesSelected={handleFilesSelected}
                     onFileRemove={removeFile}
                 />
             </div>

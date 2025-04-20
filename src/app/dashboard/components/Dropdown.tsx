@@ -10,6 +10,7 @@ interface DropdownProps {
   value: string;
   onChange: (value: string) => void;
   required?: boolean;
+  isError?: boolean;
 }
 
 export default function CustomDropdown({
@@ -17,7 +18,8 @@ export default function CustomDropdown({
   options,
   value,
   onChange,
-  required = false,
+  required = true,
+  isError = false,
 }: DropdownProps) {
   return (
     <div>
@@ -27,7 +29,11 @@ export default function CustomDropdown({
       </label>
       <Menu as="div" className="relative inline-block text-left w-full">
         <div>
-          <MenuButton className="inline-flex w-full justify-between items-center rounded-md bg-white px-3 py-2 text-sm font-normal text-gray-900 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50">
+          <MenuButton
+            className={`inline-flex w-full justify-between items-center rounded-md bg-white px-3 py-2 text-sm font-normal text-gray-900 shadow-sm ring-1 ring-inset
+              ${isError ? 'ring-red-500' : 'ring-gray-300'}
+            `}
+          >
             {value || 'Select a value'}
             <ChevronDownIcon aria-hidden="true" className="ml-2 h-5 w-5 text-gray-400" />
           </MenuButton>
@@ -53,6 +59,7 @@ export default function CustomDropdown({
           </div>
         </MenuItems>
       </Menu>
+      {isError && <p className="text-red-500 text-sm mt-1">This field is required</p>}
     </div>
   );
 }

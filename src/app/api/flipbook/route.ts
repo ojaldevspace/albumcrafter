@@ -1,6 +1,6 @@
 // src/app/api/flipbook/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import s3 from '@/lib/s3Client';
+import s3 from '@/app/lib/s3Client';
 import { GetObjectCommand } from '@aws-sdk/client-s3';
 
 export async function GET(req: NextRequest) {
@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
 
     try {
         const command = new GetObjectCommand({
-            Bucket: process.env.AWS_S3_BUCKET ?? 'albumcrafter1',
+            Bucket: process.env.AWS_S3_BUCKET,
             Key: key,
         });
 
