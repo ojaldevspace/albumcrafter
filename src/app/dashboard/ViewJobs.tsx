@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { getJobs } from './utils/getJobHelper';
 import { ViewFormData } from '@/types/ViewFormData';
-import Link from 'next/link';
 
 export default function ViewJobs() {
     const [jobs, setJobs] = useState<ViewFormData[]>([]);
