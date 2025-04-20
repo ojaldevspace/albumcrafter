@@ -89,7 +89,7 @@ export default function ImageUpload({
             onFilesSelected([...selectedFiles, ...compressedFiles]);
             setSuccess("Album uploaded successfully");
         }
-        catch(err){
+        catch{
             setError("Failed to upload album");
         }
         finally{

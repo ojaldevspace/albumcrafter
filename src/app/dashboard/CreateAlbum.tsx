@@ -33,15 +33,6 @@ export default function CreateAlbum() {
         setSelectedFiles(updatedFiles);
     };
 
-    const compressImageOld = async (file: File) => {
-        const options = {
-            maxWidthOrHeight: 1200,
-            useWebWorker: true,
-            initialQuality: 0.5
-        };
-        return await imageCompression(file, options);
-    };
-
     const handleFilesSelected = async (files: File[]) => {
         setSelectedFiles(files);
     };
