@@ -26,12 +26,6 @@ export default function CreateAlbum() {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
-    // const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    //     if (event.target.files) {
-    //         setSelectedFiles([...selectedFiles, ...Array.from(event.target.files)]);
-    //     }
-    // };
-
     const options = ['Wedding', 'Birthday', 'Engagement', 'Reception', 'df', 'arfd', 'arfe', 'arfds'];
 
     const removeFile = (index: number) => {
@@ -46,6 +40,10 @@ export default function CreateAlbum() {
             initialQuality: 0.5
         };
         return await imageCompression(file, options);
+    };
+
+    const handleFilesSelected = async (files: File[]) => {
+        setSelectedFiles(files);
     };
 
     const handleUpload = async () => {
@@ -66,8 +64,7 @@ export default function CreateAlbum() {
             const formData = new FormData();
 
             for (const file of selectedFiles) {
-                const compressed = await compressImageOld(file);
-                formData.append('file', compressed, file.name); // preserve original name
+                formData.append('file', file, file.name); // preserve original name
             }
 
             const createdAt = selectedDate?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0]; // "2025-04-09"
@@ -180,7 +177,7 @@ export default function CreateAlbum() {
             <div>
                 <ImageUpload
                     selectedFiles={selectedFiles}
-                    onFilesSelected={setSelectedFiles}
+                    onFilesSelected={handleFilesSelected} // updated to handle compression early
                     onFileRemove={removeFile}
                 />
             </div>
