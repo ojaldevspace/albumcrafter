@@ -1,6 +1,5 @@
 'use client';
 import { useState } from 'react';
-import imageCompression from 'browser-image-compression';
 import loadingAnim from '../../../public/UploadingAnimation.json';
 import successUpload from '../../../public/SuccessfullyCompleted.json'
 import CustomDatePicker from './components/DatePicker';
