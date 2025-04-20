@@ -1,6 +1,6 @@
 'use client'
 
-import { supabase } from "@/api/utils/supabaseClient";
+import { supabase } from "@/app/api/utils/supabaseClient";
 import { useEffect } from "react";
 
 export default function TestPage() {
