@@ -5,47 +5,67 @@ import { v4 as uuidv4 } from 'uuid';
 import generateFlipbook from '@/app/lib/generateFlipbook';
 import sharp from 'sharp';
 
+async function getAspectRatio(imgUrl: string): Promise<number> {
+    try {
+      const response = await fetch(imgUrl);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch image: ${imgUrl}`);
+      }
+  
+      const arrayBuffer = await response.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      const metadata = await sharp(buffer).metadata();
+  
+      if (metadata.width && metadata.height) {
+        return metadata.width / metadata.height;
+      } else {
+        return 1; // fallback if width/height missing
+      }
+    } catch (error) {
+      console.error('Error getting aspect ratio:', error);
+      return 1; // fallback on error
+    }
+  }
+
 export async function POST(req: NextRequest) {
     let isCropped = false;
     let flipbookHtml = '';
     const { imageUrls, jobNumber, createdAt } = await req.json();
-    if (!imageUrls || imageUrls.length < 2) {
-        return NextResponse.json({ error: 'At least 2 images required' }, { status: 400 });
+    if (!imageUrls || imageUrls.length < 4) {
+        return NextResponse.json({ error: 'At least 4 images required' }, { status: 400 });
     }
 
     const sortedImageUrls: string[] = imageUrls.sort();
 
-    const frontCoverImg = await fetch(sortedImageUrls[0]);
-    const arrayBuffer = await frontCoverImg.arrayBuffer();
-    const frontCoverImgbuffer = Buffer.from(arrayBuffer);
-    const frontCoverImgmetadata = await sharp(frontCoverImgbuffer).metadata();
-    const aspectRatio = frontCoverImgmetadata.width && frontCoverImgmetadata.height ? frontCoverImgmetadata.width / frontCoverImgmetadata.height: 1;
+    const coveraspectRatio = await getAspectRatio(sortedImageUrls[0]);
+    const firstPageAspectRatio = await getAspectRatio(sortedImageUrls[1]);
+    const secondPageAspectRatio = await getAspectRatio(sortedImageUrls[2]);
 
-    const firstPageImg = await fetch(sortedImageUrls[1]);
-    const firstPageImgarrayBuffer = await firstPageImg.arrayBuffer();
-    const firstPageImgbuffer = Buffer.from(firstPageImgarrayBuffer);
-    const firstPageImgmetadata = await sharp(firstPageImgbuffer).metadata();
-    const firstPageAspectRatio = firstPageImgmetadata.width && firstPageImgmetadata.height ? firstPageImgmetadata.width / firstPageImgmetadata.height : 1;
-
-    const secondPageImg = await fetch(sortedImageUrls[2]);
-    const secondPageImgarrayBuffer = await secondPageImg.arrayBuffer();
-    const secondPageImgbuffer = Buffer.from(secondPageImgarrayBuffer);
-    const secondPageImgmetadata = await sharp(secondPageImgbuffer).metadata();
-    const secondPageAspectRatio = secondPageImgmetadata.width && secondPageImgmetadata.height ? secondPageImgmetadata.width/secondPageImgmetadata.height : 1;
+    const backCoverAspectRatio = await getAspectRatio(sortedImageUrls[sortedImageUrls.length-1]);
+    const lastPageAspectRatio = await getAspectRatio(sortedImageUrls[sortedImageUrls.length-2]);
 
     debugger;
-    if(aspectRatio != firstPageAspectRatio){
+    if(coveraspectRatio != firstPageAspectRatio){
         isCropped = false;
-        flipbookHtml = generateFlipbook(sortedImageUrls, sortedImageUrls.length, sortedImageUrls[0], sortedImageUrls[sortedImageUrls.length - 1], aspectRatio, isCropped);
+        if(lastPageAspectRatio != backCoverAspectRatio)
+            flipbookHtml = generateFlipbook(sortedImageUrls, sortedImageUrls.length-1, sortedImageUrls[0], sortedImageUrls[sortedImageUrls.length - 1], coveraspectRatio, isCropped);
+        else
+            flipbookHtml = generateFlipbook(sortedImageUrls.slice(0,-1), sortedImageUrls.length-2, sortedImageUrls[0], sortedImageUrls[sortedImageUrls.length-1], coveraspectRatio, isCropped);
     }
     else if(firstPageAspectRatio != secondPageAspectRatio){
         isCropped = false;
-        flipbookHtml = generateFlipbook(sortedImageUrls.slice(1), sortedImageUrls.length-1, sortedImageUrls[0], sortedImageUrls[sortedImageUrls.length - 1], aspectRatio, isCropped);
+        if(lastPageAspectRatio != backCoverAspectRatio)
+            flipbookHtml = generateFlipbook(sortedImageUrls.slice(1), sortedImageUrls.length-2, sortedImageUrls[0], sortedImageUrls[sortedImageUrls.length - 1], coveraspectRatio, isCropped);
+        else
+            flipbookHtml = generateFlipbook(sortedImageUrls.slice(1,-1), sortedImageUrls.length-3, sortedImageUrls[0], sortedImageUrls[sortedImageUrls.length - 1], coveraspectRatio, isCropped);
     }
     else{
         isCropped = true;
-        const numPages = (sortedImageUrls.length-1)%2===0 ? ((sortedImageUrls.length-1)/2) : sortedImageUrls.length/2
-        flipbookHtml = generateFlipbook(sortedImageUrls.slice(1), numPages, sortedImageUrls[0], sortedImageUrls[sortedImageUrls.length - 1], aspectRatio, isCropped);
+        const numPages = (sortedImageUrls.length-1)%2===0 ? ((sortedImageUrls.length-1)/2)+1: sortedImageUrls.length/2
+        if((sortedImageUrls.length-1)%2 === 0)
+            flipbookHtml = generateFlipbook(sortedImageUrls.slice(1), numPages-1, sortedImageUrls[0], sortedImageUrls[sortedImageUrls.length - 1], coveraspectRatio, isCropped);
+        else
+            flipbookHtml = generateFlipbook(sortedImageUrls.slice(1,-1), numPages-1, sortedImageUrls[0], sortedImageUrls[sortedImageUrls.length - 1], coveraspectRatio, isCropped);
     }
 
     const flipbookKey = `${createdAt}/${jobNumber}/flipbooks/${uuidv4()}.html`;

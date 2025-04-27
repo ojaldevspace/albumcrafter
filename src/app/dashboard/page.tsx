@@ -58,7 +58,7 @@ export default function Dashboard() {
       <div className="flex min-h-screen">
         {/* Left Sidebar with Hover Animation */}
         <motion.aside 
-          className="w-1/4 bg-gray-800 text-white p-4 min-h-screen"
+          className="w-1/5 flex-shrink-0 bg-gray-800 text-white p-4 min-h-screen"
           initial={{ x: -100, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ duration: 0.5 }}
@@ -90,7 +90,7 @@ export default function Dashboard() {
 
         {/* Right Section with Page Switch Animation */}
         <motion.main
-          className="flex-1 p-6 bg-gray-100"
+          className="flex-1 p-6 bg-gray-100 overflow-y-auto overflow-x-auto"
           key={activeSection}
           initial={{ opacity: 0, x: 50 }}
           animate={{ opacity: 1, x: 0 }}
