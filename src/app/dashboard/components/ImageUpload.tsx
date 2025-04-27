@@ -22,10 +22,11 @@ export default function ImageUpload({
     const [progress, setProgress] = useState<number>(0);
     const [total, setTotal] = useState<number>(0);
     const [showProgressDialog, setShowProgressDialog] = useState<boolean>(false);
-    const [isUploading, setIsUploading] = useState<boolean>(false);  
+    const [isUploading, setIsUploading] = useState<boolean>(false);
     const [previews, setPreviews] = useState<string[]>([]);
     const [success, setSuccess] = useState('');
     const [error, setError] = useState('');
+    const [isDragOver, setIsDragOver] = useState<boolean>(false);
 
     useEffect(() => {
         const newPreviews: string[] = [];
@@ -55,53 +56,88 @@ export default function ImageUpload({
         setPreviews(newPreviews);
     }, [selectedFiles]);
 
-    const resetProgress = () =>{
+    const resetProgress = () => {
         setProgress(0);
-    }
+    };
 
-    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files) return;
+        const files = Array.from(e.target.files);
+        compressAndUploadFiles(files);
+    };
 
-        const filesArray = Array.from(e.target.files);
+    const handleDroppedFiles = (files: FileList) => {
+        const fileArray = Array.from(files);
+        compressAndUploadFiles(fileArray);
+    };
+
+    const compressAndUploadFiles = async (filesArray: File[]) => {
         setIsUploading(true);
         setTotal(filesArray.length);
         setProgress(0);
         setShowProgressDialog(true);
 
         const compressedFiles: File[] = [];
-        try{
+        try {
             for (let i = 0; i < filesArray.length; i++) {
                 const file = filesArray[i];
                 const options = {
-                maxWidthOrHeight: 1200,
-                useWebWorker: true,
-                initialQuality: 0.6,
+                    maxWidthOrHeight: 1200,
+                    useWebWorker: true,
+                    initialQuality: 0.6,
                 };
-    
+
                 const compressedBlob = await imageCompression(file, options);
                 const compressedFile = new File([compressedBlob], file.name, {
-                type: compressedBlob.type,
+                    type: compressedBlob.type,
                 });
-    
+
                 compressedFiles.push(compressedFile);
                 setProgress((prev) => prev + 1);
             }
             onFilesSelected([...selectedFiles, ...compressedFiles]);
-            setSuccess("Album uploaded successfully");
-        }
-        catch{
-            setError("Failed to upload album");
-        }
-        finally{
+            setSuccess('Album uploaded successfully');
+        } catch {
+            setError('Failed to upload album');
+        } finally {
             setIsUploading(false);
         }
-        
+    };
+
+    const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragOver(true);
+    };
+
+    const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragOver(false);
+    };
+
+    const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragOver(false);
+
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            handleDroppedFiles(e.dataTransfer.files);
+            e.dataTransfer.clearData();
+        }
     };
 
     return (
         <div>
             <label className="block text-sm font-medium text-gray-700">{label}</label>
-            <div className="mt-1 px-6 pt-5 pb-6 border-2 border-dashed border-gray-300 rounded-md">
+            <div
+                className={`mt-1 px-6 pt-5 pb-6 border-2 ${
+                    isDragOver ? 'border-indigo-500' : 'border-gray-300'
+                } border-dashed rounded-md transition-colors duration-200`}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+            >
                 {selectedFiles.length === 0 ? (
                     <div className="text-center">
                         <svg
@@ -129,7 +165,7 @@ export default function ImageUpload({
                                     type="file"
                                     multiple
                                     accept="image/*"
-                                    onChange={handleFileChange}
+                                    onChange={handleFileInputChange}
                                     className="sr-only"
                                 />
                             </label>
@@ -160,6 +196,7 @@ export default function ImageUpload({
                     </div>
                 )}
             </div>
+
             <CustomDialog
                 isDialogOpen={showProgressDialog}
                 setIsDialogOpen={setShowProgressDialog}
@@ -168,11 +205,10 @@ export default function ImageUpload({
                 error={error}
                 loadingAnim={loadingAnim}
                 successUpload={successUpload}
-                progress={progress/total}
+                progress={progress / total}
                 resetProgress={resetProgress}
                 autoClose={true}
             />
         </div>
-
     );
 }

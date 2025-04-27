@@ -6,6 +6,7 @@ import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import QRCode from 'qrcode';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import s3 from '@/app/lib/s3Client';
+import { generateStyledQRCode } from '@/app/lib/generateStyledQrCode';
 
 const client = new DynamoDBClient({
   region: process.env.AWS_REGION,
@@ -73,7 +74,7 @@ export async function POST(req: NextRequest) {
     const { flipbookKey } = await flipbookResponse.json();
 
     const flipbookUrl = `${baseUrl}/api/flipbook?key=${flipbookKey}`;
-    const qrCodeDataUrl = await QRCode.toDataURL(flipbookUrl);
+    const qrCodeDataUrl = await generateStyledQRCode(flipbookUrl, jobName, eventDate);
     const qrCodeKey = `${createdAtOnlyDate}/${jobNumber}/${id}.png`;
 
     await uploadQrCodeToS3(qrCodeKey, qrCodeDataUrl);
