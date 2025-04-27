@@ -10,5 +10,6 @@ export interface ViewFormData {
     dealerMobileNumber: string;
     eventDate: Date | null;
     flipbookUrl: string;
+    qrCodeUrl: string;
   }
   
