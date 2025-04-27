@@ -1,10 +1,11 @@
 // lib/getJobs.ts
-export async function getJobs() {
+export async function getJobs(createdAt: string) {
     const res = await fetch('/api/getJobs', {
-      method: 'GET',
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
+      body: JSON.stringify({ createdAt }),
     });
   
     if (!res.ok) {
@@ -13,4 +14,3 @@ export async function getJobs() {
   
     return res.json();
   }
-  

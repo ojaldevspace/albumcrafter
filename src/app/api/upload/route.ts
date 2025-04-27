@@ -21,8 +21,7 @@ export async function POST(req: NextRequest) {
     }
 
     const jobNumber = formData.get('jobNumber')?.toString() || 'unknown';
-    const uploadDate = formData.get('uploadDate')?.toString() || new Date().toISOString().split('T')[0];
-
+    const uploadDate = formData.get('uploadDate')?.toString().split('T')[0];
 
     for (const file of files) {
         const buffer = Buffer.from(await file.arrayBuffer());

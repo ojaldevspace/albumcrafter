@@ -30,7 +30,7 @@ async function getAspectRatio(imgUrl: string): Promise<number> {
 export async function POST(req: NextRequest) {
     let isCropped = false;
     let flipbookHtml = '';
-    const { imageUrls, jobNumber, createdAt } = await req.json();
+    const { imageUrls, jobNumber, createdAtOnlyDate } = await req.json();
     if (!imageUrls || imageUrls.length < 4) {
         return NextResponse.json({ error: 'At least 4 images required' }, { status: 400 });
     }
@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
             flipbookHtml = generateFlipbook(sortedImageUrls.slice(1,-1), numPages-1, sortedImageUrls[0], sortedImageUrls[sortedImageUrls.length - 1], coveraspectRatio, isCropped);
     }
 
-    const flipbookKey = `${createdAt}/${jobNumber}/flipbooks/${uuidv4()}.html`;
+    const flipbookKey = `${createdAtOnlyDate}/${jobNumber}/flipbooks/${uuidv4()}.html`;
 
     await s3.send(new PutObjectCommand({
         Bucket: process.env.AWS_S3_BUCKET,

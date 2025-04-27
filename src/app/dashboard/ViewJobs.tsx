@@ -3,15 +3,51 @@
 import { useEffect, useState } from 'react';
 import { getJobs } from './utils/getJobHelper';
 import { ViewFormData } from '@/types/ViewFormData';
+import FilterDropdown from './components/FilterDropdown';
 
 export default function ViewJobs() {
     const [jobs, setJobs] = useState<ViewFormData[]>([]);
     const [loading, setLoading] = useState(true);
+    const [selectedFilter, setSelectedFilter] = useState('Last 7 days'); // Default filter
+
+
+    const getFilteredDate = (filter: string) => {
+        const currentDate = new Date();
+        let filterDate;
+
+        switch (filter) {
+            case 'Last day':
+                filterDate = new Date();
+                filterDate.setDate(currentDate.getDate() - 1);
+                break;
+            case 'Last 7 days':
+                filterDate = new Date();
+                filterDate.setDate(currentDate.getDate() - 7);
+                break;
+            case 'Last 30 days':
+                filterDate = new Date();
+                filterDate.setDate(currentDate.getDate() - 30);
+                break;
+            case 'Last month':
+                filterDate = new Date();
+                filterDate.setMonth(currentDate.getMonth() - 1);
+                break;
+            case 'Last year':
+                filterDate = new Date();
+                filterDate.setFullYear(currentDate.getFullYear() - 1);
+                break;
+            default:
+                filterDate = new Date();
+        }
+
+        return filterDate.toISOString();
+    };
 
     useEffect(() => {
         const fetchJobs = async () => {
             try {
-                const data = await getJobs();
+                const filterDate = getFilteredDate(selectedFilter); // Get date based on the selected filter
+                const data = await getJobs(filterDate);
                 setJobs(data);
             } catch (err) {
                 console.error('Failed to fetch jobs:', err);
@@ -21,7 +57,7 @@ export default function ViewJobs() {
         };
 
         fetchJobs();
-    }, []);
+    }, [selectedFilter]);
 
     const handleViewFlipbook = (key: string) => {
         const url = `/api/flipbook?key=${encodeURIComponent(key)}`;
@@ -53,9 +89,21 @@ export default function ViewJobs() {
         }
     };
 
+    const handleFilterChange = (filter: string) => {
+        setSelectedFilter(filter);
+    };
+
     return (
         <div className="p-6">
             <h2 className="text-2xl font-semibold mb-4">Uploaded Jobs</h2>
+            <div className="relative shadow-md sm:rounded-lg">
+                <div className="flex flex-column sm:flex-row flex-wrap space-y-4 sm:space-y-0 items-center justify-between pb-4">
+                    <FilterDropdown
+                        selectedFilter={selectedFilter}
+                        handleFilterChange={handleFilterChange}
+                    />
+                </div>
+            </div>
             {loading ? (
                 <p>Loading jobs...</p>
             ) : jobs.length === 0 ? (

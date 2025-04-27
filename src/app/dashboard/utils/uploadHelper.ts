@@ -1,26 +1,6 @@
 
 import { AlbumFormData } from '@/types/AlbumFormData';
 
-function getISTDateTimeString(): string {
-    const now = new Date();
-  
-    // Convert to IST (UTC + 5:30)
-    const istOffset = 5.5 * 60; // in minutes
-    const localOffset = now.getTimezoneOffset(); // in minutes
-    const istTime = new Date(now.getTime() + (istOffset + localOffset) * 60 * 1000);
-  
-    const pad = (n: number) => n.toString().padStart(2, '0');
-  
-    const year = istTime.getFullYear();
-    const month = pad(istTime.getMonth() + 1);
-    const date = pad(istTime.getDate());
-    const hours = pad(istTime.getHours());
-    const minutes = pad(istTime.getMinutes());
-    const seconds = pad(istTime.getSeconds());
-  
-    return `${year}-${month}-${date} ${hours}:${minutes}:${seconds}`;
-  }  
-
 export async function uploadAlbum(formData: AlbumFormData, selectedFiles: File[]): Promise<{
   success: boolean;
   imageUrls?: string[];
@@ -37,7 +17,7 @@ export async function uploadAlbum(formData: AlbumFormData, selectedFiles: File[]
       uploadForm.append('file', file, file.name);
     }
 
-    const createdAt = getISTDateTimeString().split(' ')[0];
+    const createdAt = new Date().toISOString();
     uploadForm.append('jobNumber', formData.jobNumber);
     uploadForm.append('uploadDate', createdAt);
 

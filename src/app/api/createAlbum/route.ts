@@ -49,12 +49,13 @@ export async function POST(req: NextRequest) {
     
     const protocol = req.headers.get('host')?.startsWith('localhost') ? 'http' : 'https';
     const baseUrl = `${protocol}://${req.headers.get('host')}`;
+    const createdAtOnlyDate = createdAt.split('T')[0];
 
     // STEP 1: Generate the flipbook URL
     const flipbookResponse = await fetch(`${baseUrl}/api/createFlipbook`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ imageUrls, jobNumber, createdAt }),
+      body: JSON.stringify({ imageUrls, jobNumber, createdAtOnlyDate }),
     });
 
     // // STEP 1: Generate the flipbook URL
@@ -67,19 +68,18 @@ export async function POST(req: NextRequest) {
     if (!flipbookResponse.ok) {
       throw new Error('Failed to create flipbook');
     }
+    const id = uuidv4();
 
     const { flipbookKey } = await flipbookResponse.json();
 
     const flipbookUrl = `${baseUrl}/api/flipbook?key=${flipbookKey}`;
     const qrCodeDataUrl = await QRCode.toDataURL(flipbookUrl);
-    const qrCodeKey = `${createdAt}/${jobNumber}/qrcode.png`;
+    const qrCodeKey = `${createdAtOnlyDate}/${jobNumber}/${id}.png`;
 
     await uploadQrCodeToS3(qrCodeKey, qrCodeDataUrl);
 
-    const id = uuidv4();
-
     const params = {
-      TableName: 'JobList',
+      TableName: 'JobInformation',
       Item: {
         id: { S: id },
         jobNumber: { S: jobNumber },
