@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
     const qrCodeDataUrl = await QRCode.toDataURL(flipbookUrl);
     const qrCodeKey = `${createdAt}/${jobNumber}/qrcode.png`;
 
-    const qrCodeUrl = await uploadQrCodeToS3(qrCodeKey, qrCodeDataUrl);
+    await uploadQrCodeToS3(qrCodeKey, qrCodeDataUrl);
 
     const id = uuidv4();
 
