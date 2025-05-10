@@ -15,7 +15,7 @@ handleFilterChange
 
   const toggleDropdown = () => setDropdownOpen(!dropdownOpen);
 
-  const filters = ['Last day', 'Last 7 days', 'Last 30 days', 'Last month', 'Last year'];
+  const filters = ['Today', 'Last 7 days', 'Last 30 days', 'Last month', 'Last year'];
 
   return (
     <div className="relative">

@@ -16,7 +16,7 @@ export default function ViewJobs() {
         let filterDate;
 
         switch (filter) {
-            case 'Last day':
+            case 'Today':
                 filterDate = new Date();
                 filterDate.setDate(currentDate.getDate() - 1);
                 break;
@@ -59,12 +59,7 @@ export default function ViewJobs() {
         fetchJobs();
     }, [selectedFilter]);
 
-    const handleViewFlipbook = (key: string) => {
-        const url = `/api/flipbook?key=${encodeURIComponent(key)}`;
-        window.open(url, '_blank');
-    };
-
-    const handleDownloadQr = async (s3Key: string, jobNumber: string) => {
+    const handleDownloadQr = async (s3Key: string, jobName: string) => {
         const response = await fetch('/api/getQrDownloadLink', {
             method: 'POST',
             headers: {
@@ -72,7 +67,7 @@ export default function ViewJobs() {
             },
             body: JSON.stringify({
                 key: s3Key, // e.g. "qr-codes/flipbook-123.png"
-                filename: `qrcode.png`,
+                filename: `${jobName}.png`,
             }),
         });
 
@@ -80,7 +75,7 @@ export default function ViewJobs() {
         if (response.ok) {
             const link = document.createElement('a');
             link.href = data.url;
-            link.download = `flipbook-${jobNumber}.png`;
+            link.download = `flipbook-${jobName}.png`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -118,7 +113,6 @@ export default function ViewJobs() {
                                 <th scope="col" className="px-6 py-3">Job Type</th>
                                 <th scope="col" className="px-6 py-3">Dealer Name</th>
                                 <th scope="col" className="px-6 py-3">Phone Number</th>
-                                <th scope="col" className="px-6 py-3">Photographer</th>
                                 <th scope="col" className="px-6 py-3">Event Date</th>
                                 <th scope="col" className="px-6 py-3">Location</th>
                                 <th scope="col" className="px-6 py-3">QR Code</th>
@@ -138,7 +132,6 @@ export default function ViewJobs() {
                                     <td className="px-6 py-4">{job.jobType}</td>
                                     <td className="px-6 py-4">{job.dealerName}</td>
                                     <td className="px-6 py-4">{job.dealerMobileNumber}</td>
-                                    <td className="px-6 py-4">{job.photographer}</td>
                                     <td className="px-6 py-4">
                                         {job.eventDate
                                             ? new Date(job.eventDate).toLocaleDateString()
@@ -164,10 +157,10 @@ export default function ViewJobs() {
                                         )}
                                     </td>
                                     <td className="px-6 py-4">
-                                        {job.flipbookUrl ? (
+                                        {job.id ? (
                                             <div className="flex items-center">
                                                 <button
-                                                    onClick={() => handleViewFlipbook(job.flipbookUrl)}
+                                                    onClick={() => window.open(`/flipbook/view?jobId=${job.id}`, '_blank')}
                                                     className="hover:scale-110 transition-transform"
                                                 >
                                                     <img

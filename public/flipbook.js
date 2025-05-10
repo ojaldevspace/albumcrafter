@@ -4,11 +4,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // const playBtn = document.getElementById('playBtn');
 
     // Audio Setup
-    // const bgMsc = new Audio(`https://digtalpahchan.in/assets/music/${bgMusic}`);
-    // bgMsc.loop = true;
+    const bgMsc = new Audio(`https://digtalpahchan.in/assets/music/Jashn-E-Bahaara - Instrumental - Jodhaa Akbar.mp3`);
+    bgMsc.loop = true;
     
-    // const turnAudio = new Audio('https://flipix.in/assets/music/Page-flipix-sound Flipbook.mp3');
-    // turnAudio.loop = false;
+    const turnAudio = new Audio('/pageflip.mp3');
+    turnAudio.loop = false;
     
     // const intrucAudio = new Audio('https://flipix.in/assets/music/Welcome Music.mp3');
     // intrucAudio.loop = false;
@@ -22,17 +22,15 @@ document.addEventListener('DOMContentLoaded', () => {
     //     });
     // }
 
-    // playBtn.addEventListener('click', function() {
-    //     if (bgMsc.paused) {
-    //         bgMsc.play();
-    //         playBtn.innerHTML = '<i class="fa fa-pause-circle-o"></i>';
-    //         playBtn.style.color = 'darkgreen';
-    //     } else {
-    //         bgMsc.pause();
-    //         playBtn.innerHTML = '<i class="fa fa-play-circle-o"></i>';
-    //         playBtn.style.color = 'red';
-    //     }
-    // });
+    playBtn.addEventListener('click', function() {
+        if (bgMsc.paused) {
+            bgMsc.play();
+            playBtn.innerHTML = '<img src="/pause.svg" class="share">';
+        } else {
+            bgMsc.pause();
+            playBtn.innerHTML = '<img src="/play.svg" class="share">';
+        }
+    });
     
     
     
@@ -147,7 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const pageIndex = parseInt(clickedPage.id.replace('page', ''));
 
         clickedPage.classList.toggle('turn');
-        //turnAudio.play();
+        turnAudio.play();
 
         if (clickedPage.classList.contains('turn')) {
             // Go Forward
@@ -205,11 +203,10 @@ document.addEventListener('DOMContentLoaded', () => {
     var notOpened = true;
     function openBook(){
         book.classList.toggle('open');
-        // if(notOpened){
-        //     //bgMsc.play();
-        //     playBtn.innerHTML = '<i class="fa fa-pause-circle-o"></i>';
-        //     playBtn.style.color = 'darkgreen';
-        // }
+        if(notOpened && bgMsc.paused){
+            bgMsc.play();
+            playBtn.innerHTML = '<img src="/pause.svg" class="share">';
+        }
         notOpened = false;
     }
 
@@ -265,10 +262,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }).catch(err => {
                 alert("Error attempting to enable full-screen mode:", err);
             });
-            document.getElementById("fullScreenButton").innerHTML = '<i class="fa fa-lock"></i>';
+            document.getElementById("fullScreenButton").innerHTML = '<img src="/exit-fullscreen.svg" class="share">';
         } else {
             exitFullScreen();
-            document.getElementById("fullScreenButton").innerHTML = '<i class="fa fa-arrows-alt"></i>';
+            document.getElementById("fullScreenButton").innerHTML = '<img src="/fullscreen.svg" class="share">';
         }
     }
     
@@ -277,7 +274,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Touch event to show lock message only when full-screen & landscape lock is active
     document.addEventListener("touchstart", function (e) {
         if (e.touches.length > 1) {
-            if (document.getElementById("fullScreenButton").innerHTML == '<i class="fa fa-lock"></i>') {
+            if (document.getElementById("fullScreenButton").innerHTML == '<img src="/exit-fullscreen.svg" class="share">') {
                 document.querySelector('.lock-msg').style.opacity = "0.5";
                 setTimeout(function () {
                     document.querySelector('.lock-msg').style.opacity = "0";
@@ -288,9 +285,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-    // document.getElementById("fullScreenButton").addEventListener("click", function() {
-    //     toggleFullScreen(body);
-    // });
+    document.getElementById("fullScreenButton").addEventListener("click", function() {
+        toggleFullScreen(body);
+    });
     
     // If window width < 550 and orientation is portrait,
     // Create overlay and add event listener click to toggleFullScreen
@@ -320,15 +317,6 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log("This is a non iOS divice");
         problematicFunction();
       }
-    
-    
-    
-    
-    
-    
-    
-    
-    
     
 
     // Popup
@@ -361,13 +349,13 @@ document.addEventListener('DOMContentLoaded', () => {
     
     
     // On window unload, User leave the page, stop music
-    // document.addEventListener('visibilitychange', function() {
-    //     if (document.hidden) {
-    //         if (!bgMsc.paused) {
-    //             bgMsc.pause();
-    //         }
-    //     }
-    // });
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            if (!bgMsc.paused) {
+                bgMsc.pause();
+            }
+        }
+    });
 
     
     

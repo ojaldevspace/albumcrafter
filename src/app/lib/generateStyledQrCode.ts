@@ -1,20 +1,6 @@
 import { createCanvas, loadImage } from 'canvas';
 import QRCode from 'qrcode';
 
-function formatDateToCustomString(isoDateString: string): string {
-    const date = new Date(isoDateString);
-  
-    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    
-    const dayName = days[date.getDay()];
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // months are 0-indexed
-    const year = date.getFullYear();
-  
-    return `${dayName} ${day}/${month}/${year}`;
-  }
-  
-
 export async function generateStyledQRCode(flipbookUrl: string, jobName: string, eventDate: string): Promise<string> {
   const qrCodeDataUrl = await QRCode.toDataURL(flipbookUrl, {
     margin: 1,
@@ -46,7 +32,8 @@ export async function generateStyledQRCode(flipbookUrl: string, jobName: string,
   // Draw footer text
   ctx.fillStyle = '#666666';
   ctx.font = '18px sans-serif';
-  ctx.fillText(jobName, canvas.width / 2, 450);
+  ctx.fillText(jobName, canvas.width / 2, 430);
+  ctx.fillText(eventDate, canvas.width/2, 460);
 
   // Convert final canvas to DataURL
   return canvas.toDataURL('image/png');

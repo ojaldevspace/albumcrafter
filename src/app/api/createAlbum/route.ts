@@ -3,10 +3,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBClient, PutItemCommand } from '@aws-sdk/client-dynamodb';
 import { v4 as uuidv4 } from 'uuid';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
-import QRCode from 'qrcode';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import s3 from '@/app/lib/s3Client';
 import { generateStyledQRCode } from '@/app/lib/generateStyledQrCode';
+import { formatToCustomDate } from '../utils/apiHelper';
 
 const client = new DynamoDBClient({
   region: process.env.AWS_REGION,
@@ -52,29 +52,11 @@ export async function POST(req: NextRequest) {
     const baseUrl = `${protocol}://${req.headers.get('host')}`;
     const createdAtOnlyDate = createdAt.split('T')[0];
 
-    // STEP 1: Generate the flipbook URL
-    const flipbookResponse = await fetch(`${baseUrl}/api/createFlipbook`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ imageUrls, jobNumber, createdAtOnlyDate }),
-    });
-
-    // // STEP 1: Generate the flipbook URL
-    // const flipbookResponse = await fetch(`/api/createFlipbook`, {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({ imageUrls, jobNumber, createdAt }),
-    // });
-
-    if (!flipbookResponse.ok) {
-      throw new Error('Failed to create flipbook');
-    }
     const id = uuidv4();
 
-    const { flipbookKey } = await flipbookResponse.json();
-
-    const flipbookUrl = `${baseUrl}/api/flipbook?key=${flipbookKey}`;
-    const qrCodeDataUrl = await generateStyledQRCode(flipbookUrl, jobName, eventDate);
+    const flipbookUrl = `${baseUrl}/flipbook/view?jobId=${id}`;
+    const eventDateFriendly = formatToCustomDate(eventDate);
+    const qrCodeDataUrl = await generateStyledQRCode(flipbookUrl, jobName, eventDateFriendly);
     const qrCodeKey = `${createdAtOnlyDate}/${jobNumber}/${id}.png`;
 
     await uploadQrCodeToS3(qrCodeKey, qrCodeDataUrl);
@@ -91,7 +73,6 @@ export async function POST(req: NextRequest) {
         eventDate: { S: eventDate},
         createdAt: { S: createdAt },
         imageUrls: { L: imageUrls.map((url: string) => ({ S: url })) },
-        flipbookUrl: { S: flipbookKey },
         qrCodeUrl: { S: qrCodeKey},
         dealerName: { S: dealerName },
         dealerMobileNumber: { S: dealerMobileNumber },
@@ -101,7 +82,7 @@ export async function POST(req: NextRequest) {
     const command = new PutItemCommand(params);
     await client.send(command);
 
-    return NextResponse.json({ message: 'Data saved successfully', id, flipbookKey, qrCodeKey }, { status: 200 });
+    return NextResponse.json({ message: 'Data saved successfully', id, qrCodeKey }, { status: 200 });
   } catch (error: unknown) {
     console.error('DynamoDB error:', error);
 
