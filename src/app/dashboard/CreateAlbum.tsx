@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
-import loadingAnim from '../../../public/UploadingAnimation.json';
-import successUpload from '../../../public/SuccessfullyCompleted.json';
+import loadingAnim from '../../../public/assets/animation/UploadingAnimation.json';
+import successUpload from '../../../public/assets/animation/SuccessfullyCompleted.json';
 import CustomDatePicker from './components/DatePicker';
 import InputColumn from './components/InputColumn';
 import ImageUpload from './components/ImageUpload';

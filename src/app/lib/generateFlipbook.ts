@@ -9,7 +9,7 @@ export default function generateFlipbook(
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title></title>
-            <link rel="stylesheet" href="/flipbook.css">
+            <link rel="stylesheet" href="/assets/lib/flipbook.css">
             <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
         </head>
         <body id="body">
@@ -25,10 +25,10 @@ export default function generateFlipbook(
                 </div>
                 <div class="eventInformation">
                     <p>
-                    <img class="location-icon" alt="location" src="/location.svg">
+                    <img class="location-icon" alt="location" src="/assets/images/location.svg">
                     <span>${jobs.location}</span>
                     <p>
-                        <img class="location-icon" alt="phone" src="/phone.svg">
+                        <img class="location-icon" alt="phone" src="/assets/images/phone.svg">
                         <a 
                             href="https://wa.me/${jobs.dealerMobileNumber.replace(/\D/g, '')}" 
                             target="_blank" 
@@ -42,9 +42,9 @@ export default function generateFlipbook(
             <div class="main">
                 <div class="flipbook" id="flipbook"></div>
                 <div class="actions">
-                    <span id="playBtn" class="btn play"><img src="/play.svg" class="share"></span>
-                    <span id="shareBtn" class="btn"><img src="/share.svg" class="share"></span>
-                    <span id="fullScreenButton" class="btn fullscreen"><img src="/fullscreen.svg" class="share"></span>
+                    <span id="playBtn" class="btn play"><img src="/assets/images/play.svg" class="share"></span>
+                    <span id="shareBtn" class="btn"><img src="/assets/images/share.svg" class="share"></span>
+                    <span id="fullScreenButton" class="btn fullscreen"><img src="/assets/images/fullscreen.svg" class="share"></span>
                 </div>
                 
             </div>
@@ -57,7 +57,7 @@ export default function generateFlipbook(
                 const pageRatio = ${JSON.stringify(jobs.aspectRatio)};
                 const isCropped = ${jobs.isCropped};
             </script>
-            <script src="/flipbook.js"></script>
+            <script src="/assets/lib/flipbook.js"></script>
         </body>
     </html>
     `

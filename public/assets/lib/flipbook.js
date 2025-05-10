@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const bgMsc = new Audio(`https://digtalpahchan.in/assets/music/Jashn-E-Bahaara - Instrumental - Jodhaa Akbar.mp3`);
     bgMsc.loop = true;
     
-    const turnAudio = new Audio('/pageflip.mp3');
+    const turnAudio = new Audio('/assets/music/pageflip.mp3');
     turnAudio.loop = false;
     
     // const intrucAudio = new Audio('https://flipix.in/assets/music/Welcome Music.mp3');
@@ -25,10 +25,10 @@ document.addEventListener('DOMContentLoaded', () => {
     playBtn.addEventListener('click', function() {
         if (bgMsc.paused) {
             bgMsc.play();
-            playBtn.innerHTML = '<img src="/pause.svg" class="share">';
+            playBtn.innerHTML = '<img src="/assets/images/pause.svg" class="share">';
         } else {
             bgMsc.pause();
-            playBtn.innerHTML = '<img src="/play.svg" class="share">';
+            playBtn.innerHTML = '<img src="/assets/images/play.svg" class="share">';
         }
     });
     
@@ -205,7 +205,7 @@ document.addEventListener('DOMContentLoaded', () => {
         book.classList.toggle('open');
         if(notOpened && bgMsc.paused){
             bgMsc.play();
-            playBtn.innerHTML = '<img src="/pause.svg" class="share">';
+            playBtn.innerHTML = '<img src="/assets/images/pause.svg" class="share">';
         }
         notOpened = false;
     }
@@ -262,10 +262,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }).catch(err => {
                 alert("Error attempting to enable full-screen mode:", err);
             });
-            document.getElementById("fullScreenButton").innerHTML = '<img src="/exit-fullscreen.svg" class="share">';
+            document.getElementById("fullScreenButton").innerHTML = '<img src="/assets/images/exit-fullscreen.svg" class="share">';
         } else {
             exitFullScreen();
-            document.getElementById("fullScreenButton").innerHTML = '<img src="/fullscreen.svg" class="share">';
+            document.getElementById("fullScreenButton").innerHTML = '<img src="/assets/images/fullscreen.svg" class="share">';
         }
     }
     
@@ -274,7 +274,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Touch event to show lock message only when full-screen & landscape lock is active
     document.addEventListener("touchstart", function (e) {
         if (e.touches.length > 1) {
-            if (document.getElementById("fullScreenButton").innerHTML == '<img src="/exit-fullscreen.svg" class="share">') {
+            if (document.getElementById("fullScreenButton").innerHTML == '<img src="/assets/images/exit-fullscreen.svg" class="share">') {
                 document.querySelector('.lock-msg').style.opacity = "0.5";
                 setTimeout(function () {
                     document.querySelector('.lock-msg').style.opacity = "0";

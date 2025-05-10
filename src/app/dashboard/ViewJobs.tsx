@@ -146,7 +146,7 @@ export default function ViewJobs() {
                                                     className="hover:scale-110 transition-transform"
                                                 >
                                                     <img
-                                                        src="/qrcode.png"
+                                                        src="/assets/images/qrcode.png"
                                                         alt="Download QR"
                                                         className="w-6 h-6"
                                                     />
@@ -164,7 +164,7 @@ export default function ViewJobs() {
                                                     className="hover:scale-110 transition-transform"
                                                 >
                                                     <img
-                                                        src="/book.png"
+                                                        src="/assets/images/book.png"
                                                         alt="View Flipbook"
                                                         className="w-6 h-6"
                                                     />

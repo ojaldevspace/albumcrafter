@@ -3,8 +3,8 @@
 import imageCompression from 'browser-image-compression';
 import React, { useEffect, useState } from 'react';
 import CustomDialog from './Dialogbox';
-import loadingAnim from '@/../public/UploadingAnimation.json';
-import successUpload from '@/../public/SuccessfullyCompleted.json';
+import loadingAnim from '@/../public/assets/animation/UploadingAnimation.json';
+import successUpload from '@/../public/assets/animation/SuccessfullyCompleted.json';
 
 interface ImageUploadProps {
     label?: string;
