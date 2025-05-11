@@ -109,7 +109,6 @@ export default function ViewJobs() {
 
     return (
         <div className="p-6">
-            <h2 className="text-2xl font-semibold mb-4">Uploaded Jobs</h2>
             <div className="relative">
                 <div className="flex flex-row flex-wrap items-center justify-between pb-4">
                     <CustomDatePicker
@@ -129,7 +128,7 @@ export default function ViewJobs() {
                     <div className="w-12 h-12 border-4 border-gray-300 border-t-blue-600 rounded-full animate-spin" />
                 </div>
             ) : jobs.length === 0 ? (
-                <div className="shadow-md sm:rounded flex flex-col items-center justify-center h-screen text-center text-gray-600 px-4">
+                <div className="shadow-md sm:rounded flex flex-col items-center justify-center text-center text-gray-600 px-4">
                     <div className="text-5xl mb-4">⚠️</div>
                     <h2 className="text-2xl font-semibold mb-2">No Jobs Found</h2>
                 </div>
