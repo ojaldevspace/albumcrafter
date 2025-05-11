@@ -32,8 +32,7 @@ export default function InputColumn({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className={`mt-1 block w-full rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500
-          ${isError ? 'border-red-500 border' : 'border-gray-300'}
-        `}
+          ${isError ? 'border-red-500 border' : 'border-gray-300'} p-1`}
         required={required}
       />
       {isError && <p className="text-red-500 text-sm mt-1">This field is required</p>}

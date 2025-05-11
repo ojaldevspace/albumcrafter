@@ -3,51 +3,23 @@
 import { useEffect, useState } from 'react';
 import { getJobs } from './utils/getJobHelper';
 import { ViewFormData } from '@/types/ViewFormData';
-import FilterDropdown from './components/FilterDropdown';
+import CustomDatePicker from './components/DatePicker';
+import DownloadButton from './components/DownloadButton';
+
+const today = new Date();
+today.setHours(0, 0, 0, 0);
 
 export default function ViewJobs() {
     const [jobs, setJobs] = useState<ViewFormData[]>([]);
     const [loading, setLoading] = useState(true);
-    const [selectedFilter, setSelectedFilter] = useState('Last 7 days'); // Default filter
-
-
-    const getFilteredDate = (filter: string) => {
-        const currentDate = new Date();
-        let filterDate;
-
-        switch (filter) {
-            case 'Today':
-                filterDate = new Date();
-                filterDate.setDate(currentDate.getDate() - 1);
-                break;
-            case 'Last 7 days':
-                filterDate = new Date();
-                filterDate.setDate(currentDate.getDate() - 7);
-                break;
-            case 'Last 30 days':
-                filterDate = new Date();
-                filterDate.setDate(currentDate.getDate() - 30);
-                break;
-            case 'Last month':
-                filterDate = new Date();
-                filterDate.setMonth(currentDate.getMonth() - 1);
-                break;
-            case 'Last year':
-                filterDate = new Date();
-                filterDate.setFullYear(currentDate.getFullYear() - 1);
-                break;
-            default:
-                filterDate = new Date();
-        }
-
-        return filterDate.toISOString();
-    };
+    const [selectedDate, setSelectedDate] = useState(today);
+    const [downloading, setDownloading] = useState(false);
 
     useEffect(() => {
         const fetchJobs = async () => {
             try {
-                const filterDate = getFilteredDate(selectedFilter); // Get date based on the selected filter
-                const data = await getJobs(filterDate);
+                setLoading(true);
+                const data = await getJobs(selectedDate.toISOString());
                 setJobs(data);
             } catch (err) {
                 console.error('Failed to fetch jobs:', err);
@@ -57,7 +29,7 @@ export default function ViewJobs() {
         };
 
         fetchJobs();
-    }, [selectedFilter]);
+    }, [selectedDate]);
 
     const handleDownloadQr = async (s3Key: string, jobName: string) => {
         const response = await fetch('/api/getQrDownloadLink', {
@@ -84,25 +56,83 @@ export default function ViewJobs() {
         }
     };
 
-    const handleFilterChange = (filter: string) => {
-        setSelectedFilter(filter);
+    const handleDownloadAllQRCodes = async () => {
+        setDownloading(true);
+        try{
+            const response = await fetch('/api/downloadAllQRCodes', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    jobs: jobs.map(job => ({
+                        key: job.qrCodeUrl,     // This should be your S3 key
+                        filename: `${job.jobNumber}.png`,
+                    })),
+                }),
+            });
+        
+            const data = await response.json();
+            if (response.ok && data.url) {
+                const link = document.createElement('a');
+                link.href = data.url;
+                link.download = 'all-qrcodes.zip';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } else {
+                alert('Failed to download QR codes');
+            }
+        }
+        catch{
+            alert('Failed to download QR codes');
+        }
+        finally{
+            setDownloading(false);
+        }
+        
+    };
+    
+
+    const handleDateChange = (date: Date | null) => {
+        if (date == null) {
+            const resetToday = new Date();
+            resetToday.setHours(0, 0, 0, 0); // reset to midnight
+            setSelectedDate(resetToday);
+            return;
+        }
+
+        const resetDate = new Date(date);
+        resetDate.setHours(0, 0, 0, 0); // force 12:00 AM
+        setSelectedDate(resetDate);
     };
 
     return (
         <div className="p-6">
             <h2 className="text-2xl font-semibold mb-4">Uploaded Jobs</h2>
-            <div className="relative shadow-md sm:rounded-lg">
-                <div className="flex flex-column sm:flex-row flex-wrap space-y-4 sm:space-y-0 items-center justify-between pb-4">
-                    <FilterDropdown
-                        selectedFilter={selectedFilter}
-                        handleFilterChange={handleFilterChange}
+            <div className="relative">
+                <div className="flex flex-row flex-wrap items-center justify-between pb-4">
+                    <CustomDatePicker
+                        selectedDate={selectedDate}
+                        onChange={handleDateChange}
+                        required={false}
+                    />
+                    <DownloadButton
+                        downloading={downloading}
+                        onClick={handleDownloadAllQRCodes}
+                        label='Download QR'
                     />
                 </div>
             </div>
             {loading ? (
-                <p>Loading jobs...</p>
+                <div className="flex items-center justify-center h-screen">
+                    <div className="w-12 h-12 border-4 border-gray-300 border-t-blue-600 rounded-full animate-spin" />
+                </div>
             ) : jobs.length === 0 ? (
-                <p>No jobs found.</p>
+                <div className="shadow-md sm:rounded flex flex-col items-center justify-center h-screen text-center text-gray-600 px-4">
+                    <div className="text-5xl mb-4">⚠️</div>
+                    <h2 className="text-2xl font-semibold mb-2">No Jobs Found</h2>
+                </div>
             ) : (
                 <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
                     <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
