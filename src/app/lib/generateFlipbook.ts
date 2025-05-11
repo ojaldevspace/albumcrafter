@@ -30,7 +30,8 @@ export default function generateFlipbook(
                     <p>
                         <img class="location-icon" alt="phone" src="/assets/images/phone.svg">
                         <a 
-                            href="https://wa.me/${jobs.dealerMobileNumber.replace(/\D/g, '')}" 
+                            id="whatsapp-link"
+                            href="#" 
                             target="_blank" 
                             style="color: inherit; text-decoration: none;"
                         >
@@ -57,7 +58,7 @@ export default function generateFlipbook(
                 const pageRatio = ${JSON.stringify(jobs.aspectRatio)};
                 const isCropped = ${jobs.isCropped};
             </script>
-            <script src="/assets/lib/flipbook.js"></script>
+            <script src="/assets/lib/flipbook_obfuscated.js"></script>
         </body>
     </html>
     `

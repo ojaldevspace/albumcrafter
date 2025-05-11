@@ -357,6 +357,24 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    const whatsappLink = document.getElementById('whatsapp-link');
+    if (whatsappLink) {
+        const phone = whatsappLink.textContent.replace(/\D/g, '');
+        const currentUrl = window.top.location.href;
+        const message = `Hi,\nI liked your flipbook ${currentUrl}`;
+        const encodedMessage = encodeURIComponent(message);
+        whatsappLink.href = `https://wa.me/${phone}?text=${encodedMessage}`;
+    }
     
-    
+    const shareBtn = document.getElementById('shareBtn');
+    if (shareBtn) {
+        shareBtn.addEventListener('click', () => {
+            const currentUrl = window.top.location.href;
+            const message = `Hi,\nHere is my flipbook: ${currentUrl}`;
+            const encodedMessage = encodeURIComponent(message);
+            const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
+
+            window.open(whatsappUrl, '_blank');
+        });
+    }
 });

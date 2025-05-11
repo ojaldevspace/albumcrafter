@@ -46,6 +46,7 @@
     "eslint": "^9.24.0",
     "eslint-config-next": "15.2.4",
     "eslint-plugin-react": "^7.37.5",
+    "javascript-obfuscator": "^4.1.1",
     "tailwindcss": "^4.0.17",
     "typescript": "^5",
     "webpack-obfuscator": "^3.5.1"
