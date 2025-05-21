@@ -11,30 +11,34 @@ export async function uploadAlbum(formData: AlbumFormData, selectedFiles: File[]
   }
 
   try {
-    const uploadForm = new FormData();
-
-    for (const file of selectedFiles) {
-      uploadForm.append('file', file, file.name);
-    }
-
+    const uploadedImageUrls: string[] = [];
     const createdAt = new Date().toISOString();
-    uploadForm.append('jobNumber', formData.jobNumber);
-    uploadForm.append('uploadDate', createdAt);
+    const chunkSize = 15;
 
-    // Upload images to S3
+    for (let i = 0; i < selectedFiles.length; i += chunkSize) {
+      const chunk = selectedFiles.slice(i, i + chunkSize);
+      const uploadForm = new FormData();
 
-    const uploadResponse = await fetch('/api/upload', {
-      method: 'POST',
-      body: uploadForm,
-    });
+      for (const file of chunk) {
+        uploadForm.append('file', file, file.name);
+      }
 
-    const uploadResult = await uploadResponse.json();
+      uploadForm.append('jobNumber', formData.jobNumber);
+      uploadForm.append('uploadDate', createdAt);
 
-    if (!uploadResponse.ok) {
-      return { success: false, error: uploadResult.error || 'Image upload failed' };
+      const uploadResponse = await fetch('/api/upload', {
+        method: 'POST',
+        body: uploadForm,
+      });
+
+      const uploadResult = await uploadResponse.json();
+
+      if (!uploadResponse.ok) {
+        return { success: false, error: uploadResult.error || 'Image upload failed' };
+      }
+
+      uploadedImageUrls.push(...uploadResult.files);
     }
-
-    const imageUrls = uploadResult.files;
 
     // Save metadata + image URLs to DynamoDB
     const metadataResponse = await fetch('/api/createAlbum', {
@@ -44,7 +48,7 @@ export async function uploadAlbum(formData: AlbumFormData, selectedFiles: File[]
       },
       body: JSON.stringify({
         ...formData,
-        imageUrls,
+        imageUrls: uploadedImageUrls,
         createdAt,
       }),
     });
@@ -57,7 +61,7 @@ export async function uploadAlbum(formData: AlbumFormData, selectedFiles: File[]
 
     return {
       success: true,
-      imageUrls,
+      imageUrls: uploadedImageUrls,
     };
   } catch (err) {
     console.error('Upload error:', err);
