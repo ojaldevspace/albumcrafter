@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
     const { jobId } = await req.json();
 
     const command = new QueryCommand({
-        TableName: 'JobInformation',
+        TableName: 'AlbumJobInformation',
         KeyConditionExpression: 'id = :jobId',
         ExpressionAttributeValues: {
             ':jobId': { S: jobId },

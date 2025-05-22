@@ -5,6 +5,7 @@ import { getJobs } from './utils/getJobHelper';
 import { ViewFormData } from '@/types/ViewFormData';
 import CustomDatePicker from './components/DatePicker';
 import DownloadButton from './components/DownloadButton';
+import DeleteConfirmationBox from './components/DeleteConfirmationBox';
 
 const today = new Date();
 today.setHours(0, 0, 0, 0);
@@ -14,6 +15,8 @@ export default function ViewJobs() {
     const [loading, setLoading] = useState(true);
     const [selectedDate, setSelectedDate] = useState(today);
     const [downloading, setDownloading] = useState(false);
+    const [showModal, setShowModal] = useState(false);
+    const [jobToDelete, setJobToDelete] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchJobs = async () => {
@@ -58,7 +61,7 @@ export default function ViewJobs() {
 
     const handleDownloadAllQRCodes = async () => {
         setDownloading(true);
-        try{
+        try {
             const response = await fetch('/api/downloadAllQRCodes', {
                 method: 'POST',
                 headers: {
@@ -71,7 +74,7 @@ export default function ViewJobs() {
                     })),
                 }),
             });
-        
+
             const data = await response.json();
             if (response.ok && data.url) {
                 const link = document.createElement('a');
@@ -84,15 +87,15 @@ export default function ViewJobs() {
                 alert('Failed to download QR codes');
             }
         }
-        catch{
+        catch {
             alert('Failed to download QR codes');
         }
-        finally{
+        finally {
             setDownloading(false);
         }
-        
+
     };
-    
+
 
     const handleDateChange = (date: Date | null) => {
         if (date == null) {
@@ -105,6 +108,38 @@ export default function ViewJobs() {
         const resetDate = new Date(date);
         resetDate.setHours(0, 0, 0, 0); // force 12:00 AM
         setSelectedDate(resetDate);
+    };
+
+    const handleDeleteClick = (jobId: string) => {
+  setJobToDelete(jobId);
+  setShowModal(true);
+};
+
+    const confirmDeleteAlbum = async () => {
+        if (!jobToDelete) return;
+
+        try {
+            const res = await fetch('/api/deleteAlbum', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ jobId: jobToDelete }),
+            });
+
+            const result = await res.json();
+
+            if (!res.ok) {
+                throw new Error(result.error || 'Failed to delete album');
+            }
+
+            // Remove the deleted job from state
+            setJobs(prevJobs => prevJobs.filter(job => job.id !== jobToDelete));
+        } catch (err) {
+            console.error('Delete failed:', err);
+            alert('Failed to delete album');
+        }
+        finally{
+            setJobToDelete(null);
+        }
     };
 
     return (
@@ -146,6 +181,7 @@ export default function ViewJobs() {
                                 <th scope="col" className="px-6 py-3">Location</th>
                                 <th scope="col" className="px-6 py-3">QR Code</th>
                                 <th scope="col" className="px-6 py-3">Flipbook</th>
+                                <th scope="col" className="px-6 py-3">Delete</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -203,12 +239,31 @@ export default function ViewJobs() {
                                             <span className="text-gray-400 italic">-</span>
                                         )}
                                     </td>
+                                    <td className="px-6 py-4">
+                                        <div className="flex items-center">
+                                            <button
+                                                onClick={() => handleDeleteClick(job.id)}
+                                                className="hover:scale-110 transition-transform"
+                                            >
+                                                <img
+                                                    src="/assets/images/delete_red.svg"
+                                                    alt="Delete"
+                                                    className="w-6 h-6"
+                                                />
+                                            </button>
+                                        </div>
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
                 </div>
             )}
+            <DeleteConfirmationBox
+  open={showModal}
+  onClose={() => setShowModal(false)}
+  onConfirm={confirmDeleteAlbum}
+/>
         </div>
     );
 }

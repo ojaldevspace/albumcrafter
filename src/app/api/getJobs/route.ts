@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
     const endISOString = endDate.toISOString();
 
     const params = {
-      TableName: 'JobInformation',
+      TableName: 'AlbumJobInformation',
       FilterExpression: '#createdAt BETWEEN :start AND :end',
       ExpressionAttributeNames: {
         '#createdAt': 'createdAt',

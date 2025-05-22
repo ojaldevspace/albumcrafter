@@ -31,7 +31,6 @@ async function uploadQrCodeToS3(qrCodeKey: string, qrCodeDataUrl: string) {
 }
 
 export async function POST(req: NextRequest) {
-  debugger;
   try {
     const data = await req.json();
 
@@ -62,7 +61,7 @@ export async function POST(req: NextRequest) {
     await uploadQrCodeToS3(qrCodeKey, qrCodeDataUrl);
 
     const params = {
-      TableName: 'JobInformation',
+      TableName: 'AlbumJobInformation',
       Item: {
         id: { S: id },
         jobNumber: { S: jobNumber },

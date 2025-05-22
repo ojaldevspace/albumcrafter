@@ -12,7 +12,6 @@ const s3 = new S3Client({
 });
 
 export async function POST(req: NextRequest) {
-    debugger;
     const { jobs } = await req.json();
     console.log("here");
 
