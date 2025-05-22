@@ -3,10 +3,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import s3 from '@/app/lib/s3Client';
 import { DeleteObjectsCommand } from '@aws-sdk/client-s3';
-import { DeleteCommand, DynamoDBDocumentClient, GetCommand } from '@aws-sdk/lib-dynamodb';
+import { DeleteCommand, DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 import { DynamoDBClient, QueryCommand } from '@aws-sdk/client-dynamodb';
 import { unmarshall } from '@aws-sdk/util-dynamodb';
-import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { FlipBookData } from '@/types/FlipbookData';
 
 const client = new DynamoDBClient({ region: process.env.AWS_REGION });
