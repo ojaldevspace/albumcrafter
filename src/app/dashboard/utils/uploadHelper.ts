@@ -12,7 +12,7 @@ export async function uploadAlbum(formData: AlbumFormData, selectedFiles: File[]
 
   try {
     const uploadedImageUrls: string[] = [];
-    const createdAt = new Date().toISOString();
+    let createdAt = new Date().toISOString();
     const chunkSize = 15;
 
     for (let i = 0; i < selectedFiles.length; i += chunkSize) {
@@ -38,6 +38,7 @@ export async function uploadAlbum(formData: AlbumFormData, selectedFiles: File[]
       }
 
       uploadedImageUrls.push(...uploadResult.files);
+      createdAt = uploadResult.createdAt;
     }
 
     // Save metadata + image URLs to DynamoDB

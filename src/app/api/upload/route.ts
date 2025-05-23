@@ -6,6 +6,7 @@ import { PutObjectCommand } from '@aws-sdk/client-s3';
 export async function POST(req: NextRequest) {
   const formData = await req.formData();
   const files = formData.getAll('file') as File[];
+  const createdAt = new Date().toISOString();
 
   if (!files || files.length === 0) {
     return NextResponse.json({ error: 'No files uploaded' }, { status: 400 });
@@ -21,7 +22,7 @@ export async function POST(req: NextRequest) {
     }
 
     const jobNumber = formData.get('jobNumber')?.toString() || 'unknown';
-    const uploadDate = formData.get('uploadDate')?.toString().split('T')[0];
+    const uploadDate = createdAt.toString().split('T')[0];
 
     for (const file of files) {
         const buffer = Buffer.from(await file.arrayBuffer());
@@ -40,5 +41,5 @@ export async function POST(req: NextRequest) {
         uploadedFileUrls.push(fileUrl);
       }
 
-  return NextResponse.json({ files: uploadedFileUrls });
+  return NextResponse.json({ files: uploadedFileUrls, createdAt: createdAt });
 }
