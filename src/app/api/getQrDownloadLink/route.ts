@@ -10,6 +10,13 @@ const s3 = new S3Client({
 
 export async function POST(req: NextRequest) {
   try {
+
+    const { qrPageInfo } = await req.json();
+
+    if(!qrPageInfo){
+      return NextResponse.json({ error: 'Missing key or filename' }, { status: 400 });
+    }
+
     const { key, filename } = await req.json();
 
     if (!key || !filename) {

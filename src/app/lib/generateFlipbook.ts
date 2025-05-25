@@ -52,6 +52,7 @@ export default function generateFlipbook(
             <script>
                 const sheets = ${JSON.stringify(jobs.imageUrls)};
                 const numPages = ${jobs.numPages};
+                const bgMusic = ${JSON.stringify(jobs.music)};
                 const pageOrientation = ${jobs.aspectRatio > 1 ? JSON.stringify('landscape') : JSON.stringify('portrait')};;
                 const frontCoverImg = "${jobs.frontCoverUrl}";
                 const backCoverImg = "${jobs.backCoverUrl}";

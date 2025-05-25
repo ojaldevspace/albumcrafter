@@ -6,6 +6,7 @@ import { DynamoDBClient, QueryCommand } from '@aws-sdk/client-dynamodb';
 import { unmarshall } from '@aws-sdk/util-dynamodb';
 import { FlipBookData } from '@/types/FlipbookData';
 import { formatToCustomDate } from '../utils/apiHelper';
+import { Music, MusicPathMap } from '@/types/JobTypeOption';
 
 const client = new DynamoDBClient({ region: process.env.AWS_REGION });
 const docClient = DynamoDBDocumentClient.from(client);
@@ -48,9 +49,18 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'No job found for given id' }, { status: 404 });
     }
 
-    const jobs = result.Items?.map(item => unmarshall(item) as FlipBookData) || [];
-    const latestJob = jobs[0];
+    const jobs = result.Items.map(item => {
+        const unmarshalled = unmarshall(item) as FlipBookData;
+        const musicEnumValue = unmarshalled.music && unmarshalled.music.trim() !== ''
+            ? unmarshalled.music
+            : Music.Default;
+        return {
+            ...unmarshalled,
+            music: MusicPathMap[musicEnumValue as Music], // convert enum to string path
+        };
+    });
 
+    const latestJob = jobs[0];
 
     latestJob.imageUrls = latestJob.imageUrls.sort();
     latestJob.eventDateFriendly = formatToCustomDate(latestJob?.eventDate);

@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // const playBtn = document.getElementById('playBtn');
 
     // Audio Setup
-    const bgMsc = new Audio(`https://digtalpahchan.in/assets/music/Jashn-E-Bahaara - Instrumental - Jodhaa Akbar.mp3`);
+    const bgMsc = new Audio(`https://bhadani-albums.s3.ap-south-1.amazonaws.com/assets/${bgMusic}.mp3`);
     bgMsc.loop = true;
     
     const turnAudio = new Audio('/assets/music/pageflip.mp3');

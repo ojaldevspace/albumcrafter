@@ -10,5 +10,6 @@ export interface AlbumFormData {
     dealerMobileNumber: string;
     eventDate: Date | null;
     selectedFiles: File[];
+    music: string;
   }
   

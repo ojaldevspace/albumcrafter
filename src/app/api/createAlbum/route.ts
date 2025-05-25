@@ -45,6 +45,7 @@ export async function POST(req: NextRequest) {
       dealerName,
       dealerMobileNumber,
       eventDate,
+      music,
     } = data;
     
     const protocol = req.headers.get('host')?.startsWith('localhost') ? 'http' : 'https';
@@ -55,7 +56,7 @@ export async function POST(req: NextRequest) {
 
     const flipbookUrl = `${baseUrl}/flipbook/view?jobId=${id}`;
     const eventDateFriendly = formatToCustomDate(eventDate);
-    const qrCodeDataUrl = await generateStyledQRCode(flipbookUrl, jobName, eventDateFriendly);
+    const qrCodeDataUrl = await generateStyledQRCode(flipbookUrl, jobName, eventDateFriendly, jobNumber);
     const qrCodeKey = `${createdAtOnlyDate}/${jobNumber}/${id}.png`;
 
     await uploadQrCodeToS3(qrCodeKey, qrCodeDataUrl);
@@ -75,6 +76,7 @@ export async function POST(req: NextRequest) {
         qrCodeUrl: { S: qrCodeKey},
         dealerName: { S: dealerName },
         dealerMobileNumber: { S: dealerMobileNumber },
+        music: { S: music}
       },
     };
 

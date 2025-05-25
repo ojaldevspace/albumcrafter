@@ -2,11 +2,11 @@ import { createCanvas, loadImage, registerFont } from 'canvas';
 import path from 'path';
 import QRCode from 'qrcode';
 
-registerFont(path.resolve(process.cwd(), 'assets/fonts/Luckily 400.ttf'), { family: 'Luckily' });
+registerFont(path.resolve(process.cwd(), 'assets/fonts/times.ttf'), { family: 'Times New Roman' });
 registerFont(path.resolve(process.cwd(), 'assets/fonts/RobotoSlab-ExtraBold.ttf'), { family: 'Roboto-ExtraBold' });
 
 
-export async function generateStyledQRCode(flipbookUrl: string, jobName: string, eventDate: string): Promise<string> {
+export async function generateStyledQRCode(flipbookUrl: string, jobName: string, eventDate: string, jobNumber: string): Promise<string> {
   const qrCodeDataUrl = await QRCode.toDataURL(flipbookUrl, {
     margin: 1,
     width: 300,
@@ -18,7 +18,11 @@ export async function generateStyledQRCode(flipbookUrl: string, jobName: string,
 
   const qrImage = await loadImage(qrCodeDataUrl);
 
-  const canvas = createCanvas(400, 500); // Make room for header/footer
+  const headerImagePath = path.resolve(process.cwd(), 'public/assets/images/scanGoogle.jpeg');
+  const headerImage = await loadImage(headerImagePath);
+
+
+  const canvas = createCanvas(400, 550); // Make room for header/footer
   const ctx = canvas.getContext('2d');
 
   // Fill background
@@ -26,20 +30,21 @@ export async function generateStyledQRCode(flipbookUrl: string, jobName: string,
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   // Draw header text
-  ctx.fillStyle = '#333333';
-  ctx.font = 'bold 24px Roboto-ExtraBold';
-  ctx.textAlign = 'center';
-  ctx.fillText('Scan to View Album', canvas.width / 2, 40);
+  const headerWidth = 200;
+  const headerHeight = 60;
+  ctx.drawImage(headerImage, (canvas.width - headerWidth) / 2, 30, headerWidth, headerHeight);
+
 
   // Draw QR code image
-  ctx.drawImage(qrImage, 50, 70, 300, 300);
+  ctx.drawImage(qrImage, 50, 90, 300, 300);
 
   // Draw footer text
   ctx.fillStyle = '#666666';
-  ctx.font = 'bold 33px Luckily';
-  ctx.fillText(jobName, canvas.width / 2, 400);
-  ctx.font = 'bold 18px Roboto-ExtraBold';
-  ctx.fillText(eventDate, canvas.width/2, 430);
+  ctx.font = 'bold 20px Times New Roman';
+  ctx.textAlign = 'center';
+  ctx.fillText(`B-${jobNumber}`, canvas.width / 2, 420);
+  ctx.fillText(jobName, canvas.width / 2, 450);
+  ctx.fillText(eventDate, canvas.width / 2, 480)
 
   // Convert final canvas to DataURL
   return canvas.toDataURL('image/png');

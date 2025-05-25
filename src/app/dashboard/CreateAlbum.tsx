@@ -9,7 +9,7 @@ import CustomDialog from './components/Dialogbox';
 import CustomDropdown from './components/CustomDropdown';
 import { AlbumFormData } from '@/types/AlbumFormData';
 import { uploadAlbum } from './utils/uploadHelper';
-import { JobType } from '@/types/JobTypeOption';
+import { Music } from '@/types/JobTypeOption';
 
 const initialFormState: AlbumFormData = {
     jobNumber: '',
@@ -19,8 +19,9 @@ const initialFormState: AlbumFormData = {
     location: '',
     dealerName: '',
     dealerMobileNumber: '',
-    eventDate: null,
+    eventDate: new Date(),
     selectedFiles: [],
+    music: Music.Default,
 };
 
 export default function CreateAlbum() {
@@ -32,7 +33,7 @@ export default function CreateAlbum() {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [fieldErrors, setFieldErrors] = useState<Record<string, boolean>>({});
 
-    const jobTypes = Object.values(JobType);
+    const jobTypes = Object.values(Music);
 
     const handleChange = (key: keyof AlbumFormData, value: string | File[] | Date | null) => {
         setFormData(prev => ({
@@ -54,11 +55,7 @@ export default function CreateAlbum() {
         const requiredFields: (keyof AlbumFormData)[] = [
             'jobNumber',
             'jobName',
-            'jobType',
-            'photographer',
-            'location',
-            'dealerName',
-            'dealerMobileNumber',
+            'music',
             'eventDate',
         ];
 
@@ -103,7 +100,15 @@ export default function CreateAlbum() {
         }
 
         try {
-            const result = await uploadAlbum(formData, selectedFiles);
+            const filledFormData: AlbumFormData = {
+                ...formData,
+                photographer: formData.photographer.trim() || 'Unknown',
+                location: formData.location.trim() || 'Unknown',
+                dealerName: formData.dealerName.trim() || 'Unknown',
+                dealerMobileNumber: formData.dealerMobileNumber.trim() || 'Unknown',
+                };
+
+            const result = await uploadAlbum(filledFormData, selectedFiles);
             if (result.success) {
                 setSuccess('Album created successfully');
                 setFormData(initialFormState);
@@ -133,7 +138,7 @@ export default function CreateAlbum() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <CustomDropdown label="Job Type" options={jobTypes} value={formData.jobType} onChange={val => handleChange('jobType', val)} isError={fieldErrors.jobType} />
+                    <CustomDropdown label="Music" options={jobTypes} value={formData.music} onChange={val => handleChange('music', val)} isError={fieldErrors.music} />
                 </div>
                 <div>
                     <CustomDatePicker label='Date' selectedDate={formData.eventDate} onChange={val => handleChange('eventDate', val)} isError={fieldErrors.eventDate} />
@@ -141,18 +146,18 @@ export default function CreateAlbum() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <InputColumn label='Dealer & Agent Name' value={formData.dealerName} onChange={val => handleChange('dealerName', val)} isError={fieldErrors.dealerName} />
+                    <InputColumn label='Studio Name' value={formData.dealerName} onChange={val => handleChange('dealerName', val)} required = {false} />
                 </div>
                 <div>
-                    <InputColumn label='Phone Number' value={formData.dealerMobileNumber} onChange={val => handleChange('dealerMobileNumber', val)} isError={fieldErrors.dealerMobileNumber} />
+                    <InputColumn label='Phone Number' value={formData.dealerMobileNumber} onChange={val => handleChange('dealerMobileNumber', val)} required = {false} />
                 </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <InputColumn label='Photographer Name' value={formData.photographer} onChange={val => handleChange('photographer', val)} isError={fieldErrors.photographer} />
+                    <InputColumn label='Photographer Name' value={formData.photographer} onChange={val => handleChange('photographer', val)} required={false} />
                 </div>
                 <div>
-                    <InputColumn label='Location' value={formData.location} onChange={val => handleChange('location', val)} isError={fieldErrors.location} />
+                    <InputColumn label='Location' value={formData.location} onChange={val => handleChange('location', val)} required={false} />
                 </div>
             </div>
             <div>

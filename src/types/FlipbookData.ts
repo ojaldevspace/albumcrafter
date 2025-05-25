@@ -7,6 +7,7 @@ export interface FlipBookData {
     jobType: string;
     photographer: string;
     location: string;
+    music: string;
     dealerName: string;
     dealerMobileNumber: string;
     eventDate: Date | null;

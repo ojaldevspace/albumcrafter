@@ -96,6 +96,38 @@ export default function ViewJobs() {
 
     };
 
+    //     const handleDownloadAllQRCodes = async () => {
+    //   setDownloading(true);
+    //   try {
+    //     const baseUrl = window.location.origin;
+    //     const qrdetails = mapToQrPageInfo(jobs);
+
+    //     const response = await fetch('/api/downloadAllQRCodes', {
+    //       method: 'POST',
+    //       headers: {
+    //         'Content-Type': 'application/json',
+    //       },
+    //       body: JSON.stringify({ jobs : qrdetails }),
+    //     });
+
+    //     if (response.ok) {
+    //       const blob = await response.blob();
+    //       const url = window.URL.createObjectURL(blob);
+    //       const link = document.createElement('a');
+    //       link.href = url;
+    //       link.download = 'qrcodes.pdf';
+    //       document.body.appendChild(link);
+    //       link.click();
+    //       document.body.removeChild(link);
+    //     } else {
+    //       alert('Failed to generate or download QR codes');
+    //     }
+    //   } catch (err) {
+    //     alert('Error downloading QR codes');
+    //   } finally {
+    //     setDownloading(false);
+    //   }
+    // };
 
     const handleDateChange = (date: Date | null) => {
         if (date == null) {
@@ -111,9 +143,9 @@ export default function ViewJobs() {
     };
 
     const handleDeleteClick = (jobId: string) => {
-  setJobToDelete(jobId);
-  setShowModal(true);
-};
+        setJobToDelete(jobId);
+        setShowModal(true);
+    };
 
     const confirmDeleteAlbum = async () => {
         if (!jobToDelete) return;
@@ -137,7 +169,7 @@ export default function ViewJobs() {
             console.error('Delete failed:', err);
             alert('Failed to delete album');
         }
-        finally{
+        finally {
             setJobToDelete(null);
         }
     };
@@ -174,7 +206,6 @@ export default function ViewJobs() {
                             <tr>
                                 <th scope="col" className="px-6 py-3">Job Number</th>
                                 <th scope="col" className="px-6 py-3">Job Name</th>
-                                <th scope="col" className="px-6 py-3">Job Type</th>
                                 <th scope="col" className="px-6 py-3">Dealer Name</th>
                                 <th scope="col" className="px-6 py-3">Phone Number</th>
                                 <th scope="col" className="px-6 py-3">Event Date</th>
@@ -194,7 +225,6 @@ export default function ViewJobs() {
                                         {job.jobNumber}
                                     </th>
                                     <td className="px-6 py-4">{job.jobName}</td>
-                                    <td className="px-6 py-4">{job.jobType}</td>
                                     <td className="px-6 py-4">{job.dealerName}</td>
                                     <td className="px-6 py-4">{job.dealerMobileNumber}</td>
                                     <td className="px-6 py-4">
@@ -260,10 +290,11 @@ export default function ViewJobs() {
                 </div>
             )}
             <DeleteConfirmationBox
-  open={showModal}
-  onClose={() => setShowModal(false)}
-  onConfirm={confirmDeleteAlbum}
-/>
+                open={showModal}
+                onClose={() => setShowModal(false)}
+                onConfirm={confirmDeleteAlbum}
+            />
         </div>
     );
 }
+
