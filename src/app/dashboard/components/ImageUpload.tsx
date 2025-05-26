@@ -82,9 +82,9 @@ export default function ImageUpload({
             for (let i = 0; i < filesArray.length; i++) {
                 const file = filesArray[i];
                 const options = {
-                    maxWidthOrHeight: 1200,
+                    maxWidthOrHeight: 2400,
                     useWebWorker: true,
-                    initialQuality: 0.6,
+                    initialQuality: 0.7,
                 };
 
                 const compressedBlob = await imageCompression(file, options);
