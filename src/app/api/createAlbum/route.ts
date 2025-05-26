@@ -5,8 +5,9 @@ import { v4 as uuidv4 } from 'uuid';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import s3 from '@/app/lib/s3Client';
-import { generateStyledQRCode } from '@/app/lib/generateStyledQrCode';
+import { generateStyledQRCodeSVG } from '@/app/lib/generateStyledQrCode';
 import { formatToCustomDate } from '../utils/apiHelper';
+import sharp from 'sharp';
 
 const client = new DynamoDBClient({
   region: process.env.AWS_REGION,
@@ -14,13 +15,16 @@ const client = new DynamoDBClient({
 });
 
 async function uploadQrCodeToS3(qrCodeKey: string, qrCodeDataUrl: string) {
-  const base64Data = qrCodeDataUrl.replace(/^data:image\/png;base64,/, '');
-  const buffer = Buffer.from(base64Data, 'base64');
+
+  const pngBuffer = await sharp(Buffer.from(qrCodeDataUrl))
+    .resize({ width: 1000, fit: 'cover' }) // adjust as needed
+    .png()
+    .toBuffer();
 
   const command = new PutObjectCommand({
     Bucket: process.env.AWS_S3_BUCKET!,
     Key: qrCodeKey,
-    Body: buffer,
+    Body: pngBuffer,
     ContentEncoding: 'base64',
     ContentType: 'image/png',
   });
@@ -47,7 +51,7 @@ export async function POST(req: NextRequest) {
       eventDate,
       music,
     } = data;
-    
+
     const protocol = req.headers.get('host')?.startsWith('localhost') ? 'http' : 'https';
     const baseUrl = `${protocol}://${req.headers.get('host')}`;
     const createdAtOnlyDate = createdAt.split('T')[0];
@@ -56,7 +60,7 @@ export async function POST(req: NextRequest) {
 
     const flipbookUrl = `${baseUrl}/flipbook/view?jobId=${id}`;
     const eventDateFriendly = formatToCustomDate(eventDate);
-    const qrCodeDataUrl = await generateStyledQRCode(flipbookUrl, jobName, eventDateFriendly, jobNumber);
+    const qrCodeDataUrl = await generateStyledQRCodeSVG(flipbookUrl, jobName, eventDateFriendly, jobNumber);
     const qrCodeKey = `${createdAtOnlyDate}/${jobNumber}/${id}.png`;
 
     await uploadQrCodeToS3(qrCodeKey, qrCodeDataUrl);
@@ -70,13 +74,13 @@ export async function POST(req: NextRequest) {
         jobType: { S: jobType },
         photographer: { S: photographer },
         location: { S: location },
-        eventDate: { S: eventDate},
+        eventDate: { S: eventDate },
         createdAt: { S: createdAt },
         imageUrls: { L: imageUrls.map((url: string) => ({ S: url })) },
-        qrCodeUrl: { S: qrCodeKey},
+        qrCodeUrl: { S: qrCodeKey },
         dealerName: { S: dealerName },
         dealerMobileNumber: { S: dealerMobileNumber },
-        music: { S: music}
+        music: { S: music }
       },
     };
 

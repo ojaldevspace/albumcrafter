@@ -1,51 +1,60 @@
-import { createCanvas, loadImage, registerFont } from 'canvas';
-import path from 'path';
 import QRCode from 'qrcode';
+import fs from 'fs';
+import path from 'path';
 
-registerFont(path.resolve(process.cwd(), 'assets/fonts/times.ttf'), { family: 'Times New Roman' });
-registerFont(path.resolve(process.cwd(), 'assets/fonts/RobotoSlab-ExtraBold.ttf'), { family: 'Roboto-ExtraBold' });
-
-
-export async function generateStyledQRCode(flipbookUrl: string, jobName: string, eventDate: string, jobNumber: string): Promise<string> {
-  const qrCodeDataUrl = await QRCode.toDataURL(flipbookUrl, {
+export async function generateStyledQRCodeSVG(
+  flipbookUrl: string,
+  jobName: string,
+  eventDate: string,
+  jobNumber: string
+): Promise<string> {
+  // Generate QR code as SVG
+  const qrSvg = await QRCode.toString(flipbookUrl, {
+    type: 'svg',
     margin: 1,
     width: 300,
     color: {
-      dark: '#000000', 
+      dark: '#000000',
       light: '#ffffff',
-    }
+    },
   });
 
-  const qrImage = await loadImage(qrCodeDataUrl);
-
+  // Embed header image (Base64)
   const headerImagePath = path.resolve(process.cwd(), 'public/assets/images/scanGoogle.jpeg');
-  const headerImage = await loadImage(headerImagePath);
+  const headerImageBuffer = fs.readFileSync(headerImagePath);
+  const headerImageBase64 = headerImageBuffer.toString('base64');
+  const headerImageDataUri = `data:image/jpeg;base64,${headerImageBase64}`;
 
+  // SVG wrapper with viewBox and scalable layout
+  const svg = `
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="550" viewBox="0 0 400 550">
+  <style>
+    .text {
+      font-family: 'Times New Roman', serif;
+      fill: #666;
+      font-size: 20px;
+      text-anchor: middle;
+    }
+  </style>
 
-  const canvas = createCanvas(400, 550); // Make room for header/footer
-  const ctx = canvas.getContext('2d');
+  <!-- Background -->
+  <rect width="100%" height="100%" fill="white" />
 
-  // Fill background
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  <!-- Header image -->
+  <image href="${headerImageDataUri}" x="100" y="20" width="200" height="60" />
 
-  // Draw header text
-  const headerWidth = 200;
-  const headerHeight = 60;
-  ctx.drawImage(headerImage, (canvas.width - headerWidth) / 2, 30, headerWidth, headerHeight);
+  <!-- QR code -->
+  <g transform="translate(50, 100)">
+    ${qrSvg}
+  </g>
 
+  <!-- Footer Text -->
+  <text x="200" y="440" class="text">B-${jobNumber}</text>
+  <text x="200" y="470" class="text">${jobName}</text>
+  <text x="200" y="500" class="text">${eventDate}</text>
+</svg>
+`;
 
-  // Draw QR code image
-  ctx.drawImage(qrImage, 50, 90, 300, 300);
-
-  // Draw footer text
-  ctx.fillStyle = '#666666';
-  ctx.font = 'bold 20px Times New Roman';
-  ctx.textAlign = 'center';
-  ctx.fillText(`B-${jobNumber}`, canvas.width / 2, 420);
-  ctx.fillText(jobName, canvas.width / 2, 450);
-  ctx.fillText(eventDate, canvas.width / 2, 480)
-
-  // Convert final canvas to DataURL
-  return canvas.toDataURL('image/png');
+  return svg;
 }
+

@@ -24,7 +24,6 @@ export async function POST(req: NextRequest) {
     for (const job of jobs) {
         const { key, filename } = job;
 
-        console.log(key, job);
         const command = new GetObjectCommand({
             Bucket: process.env.AWS_S3_BUCKET,
             Key: key,
