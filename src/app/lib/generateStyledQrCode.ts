@@ -10,7 +10,7 @@ export async function generateStyledQRCodeSVG(
   jobNumber: string
 ): Promise<string> {
   // Load font for text-to-svg
-  const fontPath = path.resolve(process.cwd(), 'assets/fonts/times.ttf');
+  const fontPath = path.resolve(process.cwd(), 'assets/fonts/DMSerifText-Regular.ttf');
   const textToSVG = TextToSVG.loadSync(fontPath);
   const fontSize = 20;
 
