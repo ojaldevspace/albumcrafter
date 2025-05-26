@@ -1,10 +1,6 @@
 import QRCode from 'qrcode';
 import fs from 'fs';
 import path from 'path';
-import { registerFont } from 'canvas';
-
-
-registerFont(path.resolve(process.cwd(), 'assets/fonts/times.ttf'), { family: 'Times New Roman' });
 
 export async function generateStyledQRCodeSVG(
   flipbookUrl: string,
@@ -29,17 +25,27 @@ export async function generateStyledQRCodeSVG(
   const headerImageBase64 = headerImageBuffer.toString('base64');
   const headerImageDataUri = `data:image/jpeg;base64,${headerImageBase64}`;
 
-  // SVG wrapper with viewBox and scalable layout
+  // Embed Times New Roman font
+  const fontPath = path.resolve(process.cwd(), 'assets/fonts/times.ttf');
+  const fontBase64 = fs.readFileSync(fontPath).toString('base64');
+
+  // SVG wrapper with embedded font and scalable layout
   const svg = `
 <svg xmlns="http://www.w3.org/2000/svg" width="400" height="550" viewBox="0 0 400 550">
-  <style>
-    .text {
-      font-family: 'Times New Roman', serif;
-      fill: #666;
-      font-size: 20px;
-      text-anchor: middle;
-    }
-  </style>
+  <defs>
+    <style type="text/css">
+      @font-face {
+        font-family: 'TimesNewRomanEmbedded';
+        src: url(data:font/truetype;charset=utf-8;base64,${fontBase64}) format('truetype');
+      }
+      .text {
+        font-family: 'TimesNewRomanEmbedded', 'Times New Roman', serif;
+        fill: #666;
+        font-size: 20px;
+        text-anchor: middle;
+      }
+    </style>
+  </defs>
 
   <!-- Background -->
   <rect width="100%" height="100%" fill="white" />
@@ -61,4 +67,3 @@ export async function generateStyledQRCodeSVG(
 
   return svg;
 }
-
