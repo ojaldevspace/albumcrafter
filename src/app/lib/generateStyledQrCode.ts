@@ -1,6 +1,10 @@
 import QRCode from 'qrcode';
 import fs from 'fs';
 import path from 'path';
+import { registerFont } from 'canvas';
+
+
+registerFont(path.resolve(process.cwd(), 'assets/fonts/times.ttf'), { family: 'Times New Roman' });
 
 export async function generateStyledQRCodeSVG(
   flipbookUrl: string,
