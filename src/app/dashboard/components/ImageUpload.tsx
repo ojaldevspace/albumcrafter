@@ -84,7 +84,7 @@ export default function ImageUpload({
                 const options = {
                     maxWidthOrHeight: 2400,
                     useWebWorker: true,
-                    initialQuality: 0.7,
+                    initialQuality: 0.6,
                 };
 
                 const compressedBlob = await imageCompression(file, options);
