@@ -13,7 +13,7 @@ export async function uploadAlbum(formData: AlbumFormData, selectedFiles: File[]
   try {
     const uploadedImageUrls: string[] = [];
     let createdAt = new Date().toISOString();
-    const chunkSize = 10;
+    const chunkSize = 5;
 
     for (let i = 0; i < selectedFiles.length; i += chunkSize) {
       const chunk = selectedFiles.slice(i, i + chunkSize);
