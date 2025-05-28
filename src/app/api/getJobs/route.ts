@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { DynamoDBClient, ScanCommand } from '@aws-sdk/client-dynamodb';
+import { AttributeValue, DynamoDBClient, ScanCommand, ScanCommandOutput } from '@aws-sdk/client-dynamodb';
 import { unmarshall } from '@aws-sdk/util-dynamodb';
 
 const client = new DynamoDBClient({ region: process.env.AWS_REGION });
@@ -31,16 +31,31 @@ export async function POST(req: NextRequest) {
       },
     };
 
-    const data = await client.send(new ScanCommand(params));
+    let items: any[] = [];
+    let lastKey = undefined;
 
-    const jobs = (data.Items?.map((item) => unmarshall(item)) || []).sort(
+    do {
+      const data: ScanCommandOutput = await client.send(
+        new ScanCommand({
+          ...params,
+          ExclusiveStartKey: lastKey,
+        })
+      );
+
+      if (data.Items) {
+        items = items.concat(data.Items.map((item: AttributeValue | Record<string, AttributeValue>) => unmarshall(item)));
+      }
+
+      lastKey = data.LastEvaluatedKey;
+    } while (lastKey);
+
+    const sortedItems = items.sort(
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
 
-    return NextResponse.json(jobs);
+    return NextResponse.json(sortedItems);
   } catch (error) {
     console.error('DynamoDB Scan error:', error);
     return NextResponse.json({ error: 'Failed to fetch jobs' }, { status: 500 });
   }
 }
-
