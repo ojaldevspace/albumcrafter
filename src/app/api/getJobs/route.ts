@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { AttributeValue, DynamoDBClient, ScanCommand, ScanCommandOutput } from '@aws-sdk/client-dynamodb';
+import { DynamoDBClient, ScanCommand, ScanCommandOutput } from '@aws-sdk/client-dynamodb';
 import { unmarshall } from '@aws-sdk/util-dynamodb';
+import { ViewFormData } from '@/types/ViewFormData';
 
 const client = new DynamoDBClient({ region: process.env.AWS_REGION });
 
@@ -31,7 +32,7 @@ export async function POST(req: NextRequest) {
       },
     };
 
-    let items: any[] = [];
+    let items: ViewFormData[] = [];
     let lastKey = undefined;
 
     do {
@@ -43,7 +44,10 @@ export async function POST(req: NextRequest) {
       );
 
       if (data.Items) {
-        items = items.concat(data.Items.map((item: AttributeValue | Record<string, AttributeValue>) => unmarshall(item)));
+        const unmarshalledItems = data.Items.map(
+          (item) => unmarshall(item) as ViewFormData
+        );
+        items = items.concat(unmarshalledItems);
       }
 
       lastKey = data.LastEvaluatedKey;
