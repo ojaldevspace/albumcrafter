@@ -1,6 +1,28 @@
 
 import { AlbumFormData } from '@/types/AlbumFormData';
 
+async function uploadToS3(file: File, jobNumber: string): Promise<string> {
+  const presignRes = await fetch('/api/presign', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ fileName: file.name, fileType: file.type, jobNumber }),
+  });
+
+  if (!presignRes.ok) throw new Error('Failed to get presigned URL');
+
+  const { url, imageUrl } = await presignRes.json();
+
+  const uploadRes = await fetch(url, {
+    method: 'PUT',
+    headers: { 'Content-Type': file.type },
+    body: file,
+  });
+
+  if (!uploadRes.ok) throw new Error('Upload failed');
+
+  return imageUrl;
+}
+
 export async function uploadAlbum(formData: AlbumFormData, selectedFiles: File[]): Promise<{
   success: boolean;
   imageUrls?: string[];
@@ -13,34 +35,11 @@ export async function uploadAlbum(formData: AlbumFormData, selectedFiles: File[]
   try {
     const uploadedImageUrls: string[] = [];
     let createdAt = new Date().toISOString();
-    const chunkSize = 5;
 
-    for (let i = 0; i < selectedFiles.length; i += chunkSize) {
-      const chunk = selectedFiles.slice(i, i + chunkSize);
-      const uploadForm = new FormData();
-
-      for (const file of chunk) {
-        uploadForm.append('file', file, file.name);
-      }
-
-      uploadForm.append('jobNumber', formData.jobNumber);
-      uploadForm.append('uploadDate', createdAt);
-
-      const uploadResponse = await fetch('/api/upload', {
-        method: 'POST',
-        body: uploadForm,
-      });
-
-      const uploadResult = await uploadResponse.json();
-
-      if (!uploadResponse.ok) {
-        return { success: false, error: uploadResult.error || 'Image upload failed' };
-      }
-
-      uploadedImageUrls.push(...uploadResult.files);
-      createdAt = uploadResult.createdAt;
+    for (const file of selectedFiles) {
+      const imageUrl = await uploadToS3(file, formData.jobNumber);
+      uploadedImageUrls.push(imageUrl);
     }
-
 
     // Save metadata + image URLs to DynamoDB
     const metadataResponse = await fetch('/api/createAlbum', {
