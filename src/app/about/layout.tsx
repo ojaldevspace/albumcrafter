@@ -9,7 +9,7 @@ export default function AboutLayout({
         <div>
             <ul>
                 <li>
-                    Shut up
+                    Wow
                 </li>
                 <li>
                     brother

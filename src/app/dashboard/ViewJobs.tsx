@@ -6,6 +6,7 @@ import { ViewFormData } from '@/types/ViewFormData';
 import CustomDatePicker from './components/DatePicker';
 import DownloadButton from './components/DownloadButton';
 import DeleteConfirmationBox from './components/DeleteConfirmationBox';
+import EditJobModal from './components/EditModalBox';
 
 const today = new Date();
 today.setHours(0, 0, 0, 0);
@@ -17,6 +18,7 @@ export default function ViewJobs() {
     const [downloading, setDownloading] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [jobToDelete, setJobToDelete] = useState<string | null>(null);
+    const [editingJob, setEditingJob] = useState<ViewFormData | null>(null);
 
     useEffect(() => {
         const fetchJobs = async () => {
@@ -174,6 +176,17 @@ export default function ViewJobs() {
         }
     };
 
+    const handleEditClick = (job: ViewFormData) => {
+        setEditingJob(job);
+    };
+
+    const handleJobUpdate = (updatedJob: ViewFormData) => {
+        setJobs(prev =>
+            prev.map(job => job.id === updatedJob.id ? updatedJob : job)
+        );
+    };
+
+
     return (
         <div className="p-6">
             <div className="relative">
@@ -212,7 +225,7 @@ export default function ViewJobs() {
                                 <th scope="col" className="px-6 py-3">Location</th>
                                 <th scope="col" className="px-6 py-3">QR Code</th>
                                 <th scope="col" className="px-6 py-3">Flipbook</th>
-                                <th scope="col" className="px-6 py-3">Delete</th>
+                                <th scope="col" className="px-6 py-3">Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -270,7 +283,17 @@ export default function ViewJobs() {
                                         )}
                                     </td>
                                     <td className="px-6 py-4">
-                                        <div className="flex items-center">
+                                        <div className="flex items-center gap-3">
+                                            <button
+                                                onClick={() => handleEditClick(job)}
+                                                className="hover:scale-110 transition-transform"
+                                            >
+                                                <img
+                                                    src="/assets/images/edit-button.svg"
+                                                    alt="Edit"
+                                                    className="w-6 h-6"
+                                                />
+                                            </button>
                                             <button
                                                 onClick={() => handleDeleteClick(job.id)}
                                                 className="hover:scale-110 transition-transform"
@@ -294,6 +317,13 @@ export default function ViewJobs() {
                 onClose={() => setShowModal(false)}
                 onConfirm={confirmDeleteAlbum}
             />
+            {editingJob && (
+                <EditJobModal
+                    job={editingJob}
+                    onClose={() => setEditingJob(null)}
+                    onSave={handleJobUpdate}
+                />
+            )}
         </div>
     );
 }
