@@ -1,5 +1,4 @@
 // pages/api/updateJob.ts
-import { NextApiRequest, NextApiResponse } from 'next';
 import { DynamoDBClient, UpdateItemCommand } from '@aws-sdk/client-dynamodb';
 import { marshall } from '@aws-sdk/util-dynamodb';
 import { NextRequest, NextResponse } from 'next/server';
