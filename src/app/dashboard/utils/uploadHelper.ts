@@ -34,7 +34,7 @@ export async function uploadAlbum(formData: AlbumFormData, selectedFiles: File[]
 
   try {
     const uploadedImageUrls: string[] = [];
-    let createdAt = new Date().toISOString();
+    const createdAt = new Date().toISOString();
 
     for (const file of selectedFiles) {
       const imageUrl = await uploadToS3(file, formData.jobNumber);
