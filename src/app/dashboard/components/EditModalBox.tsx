@@ -1,7 +1,6 @@
 import { ViewFormData } from '@/types/ViewFormData';
 import { useState } from 'react';
 import InputColumn from './InputColumn';
-import DatePicker from 'react-datepicker';
 import CustomDatePicker from './DatePicker';
 
 type Props = {
