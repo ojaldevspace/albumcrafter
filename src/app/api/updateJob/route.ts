@@ -7,13 +7,13 @@ const client = new DynamoDBClient({ region: process.env.AWS_REGION });
 
 export async function POST(req: NextRequest) {
 
-    const { id, createdAt, jobName, dealerName, dealerMobileNumber, location } = await req.json();
+    const { id, createdAt, jobName, dealerName, dealerMobileNumber, location, eventDate } = await req.json();
 
     try {
         const command = new UpdateItemCommand({
             TableName: 'AlbumJobInformation',
             Key: marshall({ id, createdAt }),
-            UpdateExpression: 'SET jobName = :jn, dealerName = :dn, dealerMobileNumber = :dm, #loc = :loc',
+            UpdateExpression: 'SET jobName = :jn, dealerName = :dn, dealerMobileNumber = :dm, #loc = :loc, eventDate = :ed',
             ExpressionAttributeNames: {
                 '#loc': 'location',
             },
@@ -22,6 +22,7 @@ export async function POST(req: NextRequest) {
                 ':dn': dealerName,
                 ':dm': dealerMobileNumber,
                 ':loc': location,
+                ':ed': eventDate,
             }),
         });
 
