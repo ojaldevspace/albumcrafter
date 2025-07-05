@@ -1,6 +1,7 @@
 import { ViewFormData } from '@/types/ViewFormData';
 import { useState } from 'react';
 import InputColumn from './InputColumn';
+import CustomDatePicker from './DatePicker';
 
 type Props = {
   job: ViewFormData;
@@ -54,6 +55,11 @@ export default function EditJobModal({ job, onClose, onSave } : Props) {
                     </div>
                     <div>
                         <InputColumn label='Location' value={formData.location} onChange={val => handleChange('location', val)} />
+                    </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <CustomDatePicker label='Date' selectedDate={formData.eventDate} onChange={val => handleChange('eventDate', val)} />
                     </div>
                 </div>
                 <div className="flex justify-end space-x-2 mt-4">
