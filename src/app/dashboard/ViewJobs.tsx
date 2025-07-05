@@ -63,6 +63,7 @@ export default function ViewJobs() {
 
     const handleDownloadAllQRCodes = async () => {
         setDownloading(true);
+        const downloadSelectedDate = new Date(selectedDate).toLocaleDateString('en-CA', { timeZone : 'Asia/Kolkata' });
         try {
             const response = await fetch('/api/downloadAllQRCodes', {
                 method: 'POST',
@@ -74,19 +75,18 @@ export default function ViewJobs() {
                         key: job.qrCodeUrl,     // This should be your S3 key
                         filename: `${job.jobNumber}.png`,
                     })),
+                    selectedDate: downloadSelectedDate,
                 }),
             });
 
-            const data = await response.json();
-            if (response.ok && data.url) {
-                const link = document.createElement('a');
-                link.href = data.url;
-                link.download = 'all-qrcodes.zip';
-                document.body.appendChild(link);
+            const { url } = await response.json();
+            if (response.ok && url) {
+                const link = document.createElement("a");
+                link.href = url;
+                link.download = `${selectedDate}.pdf`;
                 link.click();
-                document.body.removeChild(link);
             } else {
-                alert('Failed to download QR codes');
+                alert("Failed to create PDF");
             }
         }
         catch {
@@ -97,40 +97,7 @@ export default function ViewJobs() {
         }
 
     };
-
-    //     const handleDownloadAllQRCodes = async () => {
-    //   setDownloading(true);
-    //   try {
-    //     const baseUrl = window.location.origin;
-    //     const qrdetails = mapToQrPageInfo(jobs);
-
-    //     const response = await fetch('/api/downloadAllQRCodes', {
-    //       method: 'POST',
-    //       headers: {
-    //         'Content-Type': 'application/json',
-    //       },
-    //       body: JSON.stringify({ jobs : qrdetails }),
-    //     });
-
-    //     if (response.ok) {
-    //       const blob = await response.blob();
-    //       const url = window.URL.createObjectURL(blob);
-    //       const link = document.createElement('a');
-    //       link.href = url;
-    //       link.download = 'qrcodes.pdf';
-    //       document.body.appendChild(link);
-    //       link.click();
-    //       document.body.removeChild(link);
-    //     } else {
-    //       alert('Failed to generate or download QR codes');
-    //     }
-    //   } catch (err) {
-    //     alert('Error downloading QR codes');
-    //   } finally {
-    //     setDownloading(false);
-    //   }
-    // };
-
+    
     const handleDateChange = (date: Date | null) => {
         if (date == null) {
             const resetToday = new Date();

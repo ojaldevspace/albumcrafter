@@ -1,141 +1,94 @@
-import { S3Client, GetObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
-import JSZip from 'jszip';
-import { NextRequest, NextResponse } from 'next/server';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { Readable } from 'stream';
-import { v4 as uuidv4 } from 'uuid';
-import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
+import { NextRequest, NextResponse } from "next/server";
+import { S3Client, GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { PDFDocument } from "pdf-lib";
 
-const s3 = new S3Client({
-  region: process.env.AWS_REGION,
-  credentials: fromNodeProviderChain(),
-});
+const s3 = new S3Client({ region: process.env.AWS_REGION! });
+
+const SRC_BUCKET = process.env.AWS_S3_BUCKET!;   // PNGs live here
+const DEST_BUCKET = process.env.AWS_S3_BUCKET!;     // PDF lives here
+const PAGE_W = 1800;   // 3 : 4 aspect (600 × 800 pt ≈ 8.3″×11.1″)
+const PAGE_H = 1200;
+const MARGIN = 350;
 
 export async function POST(req: NextRequest) {
-    const { jobs } = await req.json();
-    console.log("here");
-
-    if (!Array.isArray(jobs)) {
-        return NextResponse.json({ error: 'Invalid job data' }, { status: 400 });
+    if (req.method !== "POST") {
+        // (Not strictly needed—App Router only calls POST here—but it’s defensive.)
+        return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
     }
 
-    const zip = new JSZip();
+    // -------- 1. Parse body ----------------------------------------------------
+    let body: { jobs: { key: string; filename: string }[]; selectedDate: string };
+    try {
+        body = await req.json();
+    } catch {
+        return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+    }
+    const { jobs, selectedDate } = body ?? {};
+    if (!Array.isArray(jobs) || jobs.length === 0) {
+        return NextResponse.json({ error: "No jobs supplied" }, { status: 422 });
+    }
 
-    for (const job of jobs) {
-        const { key, filename } = job;
+    // -------- 2. Fetch all PNGs from S3 (parallel) -----------------------------
+    const pngBuffers = await Promise.all(
+        jobs.map(async ({ key }) => {
+            const obj = await s3.send(new GetObjectCommand({ Bucket: SRC_BUCKET, Key: key }));
+            // Node 18 + fetch polyfill: transformToByteArray() yields Uint8Array
+            if (!obj.Body) {
+                throw new Error(`No body returned for key: ${key}`);
+            }
+            return Buffer.from(await obj.Body.transformToByteArray());
+        })
+    );
 
-        const command = new GetObjectCommand({
-            Bucket: process.env.AWS_S3_BUCKET,
-            Key: key,
+    // -------- 3. Build the PDF -------------------------------------------------
+    const pdf = await PDFDocument.create();
+    for (const pngBytes of pngBuffers) {
+        const page = pdf.addPage([PAGE_W, PAGE_H]);
+        const image = await pdf.embedPng(pngBytes);
+        const { width, height } = image.scale(0.25);
+
+        const scale = Math.min(
+            (PAGE_W - 2 * MARGIN) / width,
+            (PAGE_H - 2 * MARGIN) / height
+        );
+        const imgW = width * scale;
+        const imgH = height * scale;
+
+        page.drawImage(image, {
+            x: (PAGE_W - imgW) / 2,
+            y: (PAGE_H - imgH) / 2,
+            width: imgW,
+            height: imgH,
         });
-
-        try {
-            const { Body } = await s3.send(command);
-
-            const buffer = await streamToBuffer(Body as Readable);
-            zip.file(filename, buffer);
-        } catch (err) {
-            console.error(`Failed to fetch ${key}:`, err);
-        }
     }
 
-    const zipBuffer = await zip.generateAsync({ type: 'nodebuffer' });
+    const pdfBytes = await pdf.save();
 
-    const zipKey = `downloads/qrcodes-${uuidv4()}.zip`;
+    // -------- 4. Upload & presign ---------------------------------------------
+    const outKey = `qr‑pdfs/${selectedDate}/${crypto.randomUUID()}.pdf`;
 
-    // Upload ZIP to S3
-    await s3.send(new PutObjectCommand({
-        Bucket: process.env.AWS_S3_BUCKET,
-        Key: zipKey,
-        Body: zipBuffer,
-        ContentType: 'application/zip',
-    }));
+    await s3.send(
+        new PutObjectCommand({
+            Bucket: DEST_BUCKET,
+            Key: outKey,
+            Body: pdfBytes,
+            ContentType: "application/pdf",
+            ContentDisposition: 'attachment; filename="all-qrcodes.pdf"'
+        })
+    );
 
-    const url = await getSignedUrl(s3, new GetObjectCommand({
-        Bucket: process.env.AWS_S3_BUCKET,
-        Key: zipKey,
-    }), { expiresIn: 60 * 5 });
+    const desiredName = `${selectedDate}.pdf`;
 
-    return NextResponse.json({ url });
+    const url = await getSignedUrl(
+        s3,
+        new GetObjectCommand({
+            Bucket: DEST_BUCKET, Key: outKey, ResponseContentDisposition: `attachment; filename="${desiredName}"`,
+            ResponseContentType: "application/pdf"
+        }),
+        { expiresIn: 3600 } // 1 hour
+    );
+
+    // -------- 5. Return JSON ---------------------------------------------------
+    return NextResponse.json({ url }, { status: 200 });
 }
-
-function streamToBuffer(stream: Readable): Promise<Buffer> {
-    return new Promise((resolve, reject) => {
-        const chunks: (Uint8Array | Buffer)[] = [];
-        stream.on('data', (chunk) => chunks.push(chunk));
-        stream.on('error', reject);
-        stream.on('end', () => resolve(Buffer.concat(chunks)));
-    });
-}
-
-
-// import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
-// import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-// import { PDFDocument } from 'pdf-lib';
-// import { NextRequest, NextResponse } from 'next/server';
-// import { v4 as uuidv4 } from 'uuid';
-// import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
-// import { generateStyledQRCode } from '@/app/lib/generateStyledQrCode';
-// import { QRPageInfo } from '@/types/QRPageInfo';
-
-// const s3 = new S3Client({
-//   region: process.env.AWS_REGION,
-//   credentials: fromNodeProviderChain(),
-// });
-
-
-// export async function POST(req: NextRequest) {
-//   const { jobs }: { jobs: QRPageInfo[] } = await req.json();
-//     debugger;
-//   if (!Array.isArray(jobs)) {
-//     return NextResponse.json({ error: 'Invalid job data' }, { status: 400 });
-//   }
-
-//   try {
-//     const pdfDoc = await PDFDocument.create();
-//     const PAGE_WIDTH = 864;   // 12in * 72
-//     const PAGE_HEIGHT = 1296; // 18in * 72
-
-//     for (const job of jobs) {
-//       const { id, jobName, eventDate, jobNumber } = job;
-
-//       const dataUrl = await generateStyledQRCode(id, jobName, eventDate, jobNumber);
-//       const base64 = dataUrl.split(',')[1];
-//       const buffer = Buffer.from(base64, 'base64');
-
-//       const image = await pdfDoc.embedPng(buffer);
-//       const page = pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
-
-//       const x = (PAGE_WIDTH - image.width) / 2;
-//       const y = (PAGE_HEIGHT - image.height) / 2;
-
-//       page.drawImage(image, {
-//         x,
-//         y,
-//         width: image.width,
-//         height: image.height,
-//       });
-//     }
-
-//     const pdfBytes = await pdfDoc.save();
-
-//     const pdfKey = `downloads/qrcodes-${uuidv4()}.pdf`;
-
-//     await s3.send(new PutObjectCommand({
-//       Bucket: process.env.AWS_S3_BUCKET,
-//       Key: pdfKey,
-//       Body: Buffer.from(pdfBytes),
-//       ContentType: 'application/pdf',
-//     }));
-
-//     const url = await getSignedUrl(s3, new PutObjectCommand({
-//       Bucket: process.env.AWS_S3_BUCKET,
-//       Key: pdfKey,
-//     }), { expiresIn: 60 * 5 });
-
-//     return NextResponse.json({ url });
-//   } catch (err) {
-//     console.error('PDF generation failed:', err);
-//     return NextResponse.json({ error: 'QR code PDF generation failed' }, { status: 500 });
-//   }
-// }
