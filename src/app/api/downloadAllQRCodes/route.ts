@@ -4,7 +4,10 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { PDFDocument } from "pdf-lib";
 
 const s3 = new S3Client({ region: process.env.AWS_REGION! });
-
+export const runtime     = 'nodejs';   // be sure you’re **not** on the Edge runtime
+export const maxDuration = 60;         // seconds — Hobby(Fluid)/Pro plans allow this
+export const dynamic     = 'force-dynamic'; // disables route caching
+export const preferredRegion = ['bom1']; 
 const SRC_BUCKET = process.env.AWS_S3_BUCKET!;   // PNGs live here
 const DEST_BUCKET = process.env.AWS_S3_BUCKET!;     // PDF lives here
 const PAGE_W = 1800;   // 3 : 4 aspect (600 × 800 pt ≈ 8.3″×11.1″)
