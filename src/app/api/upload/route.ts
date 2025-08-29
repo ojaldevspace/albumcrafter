@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
           Key: fileKey,
           Body: buffer,
           ContentType: file.type,
-          CacheControl: "public, max-age=43200 s-maxage=604800"
+          CacheControl: "public, max-age=43200, s-maxage=604800"
         });
     
         await s3.send(uploadParams);
