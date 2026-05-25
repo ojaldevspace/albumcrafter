@@ -19,6 +19,8 @@ export default function ViewJobs() {
     const [showModal, setShowModal] = useState(false);
     const [jobToDelete, setJobToDelete] = useState<string | null>(null);
     const [editingJob, setEditingJob] = useState<ViewFormData | null>(null);
+    const [fromJob, setFromJob] = useState('');
+    const [toJob, setToJob] = useState('');
 
     useEffect(() => {
         const fetchJobs = async () => {
@@ -64,6 +66,33 @@ export default function ViewJobs() {
     const handleDownloadAllQRCodes = async () => {
         setDownloading(true);
         const downloadSelectedDate = new Date(selectedDate).toLocaleDateString('en-CA', { timeZone : 'Asia/Kolkata' });
+
+        // Validate: if only one of from/to is filled, show error
+        if ((fromJob === '') !== (toJob === '')) {
+            alert('Please fill both From and To values, or leave both empty to download all.');
+            setDownloading(false);
+            return;
+        }
+
+        // Filter by job number range only if from/to are provided
+        const from = fromJob !== '' ? parseInt(fromJob, 10) : null;
+        const to = toJob !== '' ? parseInt(toJob, 10) : null;
+        const filteredJobs = (from === null && to === null)
+            ? jobs
+            : jobs.filter(job => {
+                const num = parseInt(job.jobNumber, 10);
+                if (isNaN(num)) return true; // keep jobs with non-numeric job numbers
+                if (from !== null && num < from) return false;
+                if (to !== null && num > to) return false;
+                return true;
+            });
+
+        if (filteredJobs.length === 0) {
+            alert('No jobs found in the specified range.');
+            setDownloading(false);
+            return;
+        }
+
         try {
             const response = await fetch('/api/downloadAllQRCodes', {
                 method: 'POST',
@@ -71,8 +100,8 @@ export default function ViewJobs() {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    jobs: jobs.map(job => ({
-                        key: job.qrCodeUrl,     // This should be your S3 key
+                    jobs: filteredJobs.map(job => ({
+                        key: job.qrCodeUrl,
                         filename: `${job.jobNumber}.png`,
                     })),
                     selectedDate: downloadSelectedDate,
@@ -163,11 +192,27 @@ export default function ViewJobs() {
                         onChange={handleDateChange}
                         required={false}
                     />
-                    <DownloadButton
-                        downloading={downloading}
-                        onClick={handleDownloadAllQRCodes}
-                        label='Download QR'
-                    />
+                    <div className="flex items-center gap-2">
+                        <input
+                            type="number"
+                            placeholder="From"
+                            value={fromJob}
+                            onChange={e => setFromJob(e.target.value)}
+                            className="w-24 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                        />
+                        <input
+                            type="number"
+                            placeholder="To"
+                            value={toJob}
+                            onChange={e => setToJob(e.target.value)}
+                            className="w-24 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                        />
+                        <DownloadButton
+                            downloading={downloading}
+                            onClick={handleDownloadAllQRCodes}
+                            label='Download QR'
+                        />
+                    </div>
                 </div>
             </div>
             {loading ? (
