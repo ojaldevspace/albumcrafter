@@ -2,6 +2,18 @@ import { FlipBookData } from "@/types/FlipbookData"
 
 export default function generateFlipbook(
     jobs: FlipBookData) {
+
+    const s3Base = "https://bhadani-albums.s3.ap-south-1.amazonaws.com";
+    const cloudfrontBase = "https://d37zfme3rbi1nc.cloudfront.net";
+
+    // Convert S3 URLs → CloudFront URLs
+    const cloudfrontUrls = jobs.imageUrls.map(url => 
+        url.replace(s3Base, cloudfrontBase)
+    );
+
+    const cloudfrontUrlForFrontCover = jobs.frontCoverUrl.replace(s3Base, cloudfrontBase);
+    const cloudfrontUrlForBackCover = jobs.backCoverUrl.replace(s3Base, cloudfrontBase);
+
     return `
     <!DOCTYPE html>
     <html lang="en">
@@ -50,12 +62,12 @@ export default function generateFlipbook(
                 
             </div>
             <script>
-                const sheets = ${JSON.stringify(jobs.imageUrls)};
+                const sheets = ${JSON.stringify(cloudfrontUrls)};
                 const numPages = ${jobs.numPages};
                 const bgMusic = ${JSON.stringify(jobs.music)};
                 const pageOrientation = ${jobs.aspectRatio > 1 ? JSON.stringify('landscape') : JSON.stringify('portrait')};;
-                const frontCoverImg = "${jobs.frontCoverUrl}";
-                const backCoverImg = "${jobs.backCoverUrl}";
+                const frontCoverImg = "${cloudfrontUrlForFrontCover}";
+                const backCoverImg = "${cloudfrontUrlForBackCover}";
                 const pageRatio = ${JSON.stringify(jobs.aspectRatio)};
                 const isCropped = ${jobs.isCropped};
             </script>
